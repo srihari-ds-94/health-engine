@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  health-engine:
+    build: .
+    container_name: health-engine
+    ports:
+      - "8000:8000"
+    environment:
+      - PORT=8000
+      - DATABASE_PATH=/app/data/healthengine.db
+    volumes:
+      - health_data:/app/data
+    restart: unless-stopped
+
+volumes:
+  health_data:

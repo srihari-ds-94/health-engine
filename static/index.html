@@ -1,0 +1,2483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HealthEngine - Daily AI Health, Gym & Progression Tracker</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Plus Jakarta Sans', sans-serif; }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen">
+
+  <!-- ========================================== -->
+  <!-- 1. AUTH & ONBOARDING VIEW                  -->
+  <!-- ========================================== -->
+  <div id="auth-view" class="min-h-screen flex items-center justify-center p-4">
+    <div class="max-w-md w-full bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden">
+      
+      <!-- Auth Header Banner -->
+      <div class="bg-gradient-to-r from-emerald-600 to-teal-700 p-6 text-white text-center">
+        <div class="inline-flex p-3 bg-white/20 rounded-2xl mb-2 backdrop-blur-sm">
+          <span class="text-2xl font-black tracking-tight">HE</span>
+        </div>
+        <h1 class="text-2xl font-extrabold tracking-tight">HealthEngine</h1>
+        <p class="text-xs text-emerald-100 mt-1">Answering: "Am I healthier today than yesterday?"</p>
+      </div>
+
+      <!-- Auth Tabs -->
+      <div class="flex border-b border-slate-200 text-xs font-bold">
+        <button type="button" id="tab-register-btn" class="flex-1 py-3 text-center text-emerald-700 border-b-2 border-emerald-600 bg-emerald-50/50 transition">
+          Create Account & Profile
+        </button>
+        <button type="button" id="tab-login-btn" class="flex-1 py-3 text-center text-slate-500 hover:text-slate-800 transition">
+          Sign In
+        </button>
+      </div>
+
+      <div class="p-6">
+        
+        <!-- Registration & Basic Profile Form -->
+        <form id="register-form" class="space-y-4">
+          <div class="space-y-3">
+            <div>
+              <label for="reg-name" class="block text-xs font-bold text-slate-700 mb-1">Full Name</label>
+              <input type="text" id="reg-name" required placeholder="e.g., Alex Rivera" class="w-full text-xs p-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium">
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label for="reg-email" class="block text-xs font-bold text-slate-700 mb-1">Email</label>
+                <input type="email" id="reg-email" required placeholder="name@example.com" class="w-full text-xs p-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium">
+              </div>
+              <div>
+                <label for="reg-password" class="block text-xs font-bold text-slate-700 mb-1">Password</label>
+                <input type="password" id="reg-password" required placeholder="••••••••" class="w-full text-xs p-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium">
+              </div>
+            </div>
+          </div>
+
+          <!-- Basic Health Profile Section with AI Recommendations -->
+          <div class="pt-3 border-t border-slate-100">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-extrabold text-slate-800">Health & Baseline Metrics</span>
+              <span class="text-[10px] bg-purple-100 text-purple-800 font-bold px-2 py-0.5 rounded-full">🤖 AI Engine Active</span>
+            </div>
+            
+            <div class="grid grid-cols-3 gap-2 mb-3">
+              <div>
+                <label for="reg-age" class="block text-[11px] font-semibold text-slate-600 mb-1">Age</label>
+                <input type="number" id="reg-age" value="32" min="15" max="100" class="w-full text-xs p-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium">
+              </div>
+              <div>
+                <label for="reg-height" class="block text-[11px] font-semibold text-slate-600 mb-1">Height (cm)</label>
+                <input type="number" id="reg-height" value="185" min="100" max="230" class="w-full text-xs p-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium">
+              </div>
+              <div>
+                <label for="reg-weight" class="block text-[11px] font-semibold text-slate-600 mb-1">Weight (kg)</label>
+                <input type="number" id="reg-weight" value="67" min="30" max="200" step="0.5" class="w-full text-xs p-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium">
+              </div>
+            </div>
+
+            <!-- Primary Goal & AI Protein Engine Calculation -->
+            <div class="space-y-3">
+              <div>
+                <label for="reg-goal" class="block text-[11px] font-semibold text-slate-600 mb-1">Primary Fitness Goal</label>
+                <select id="reg-goal" class="w-full text-xs p-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium text-slate-700 bg-slate-50">
+                  <option value="muscle_gain" selected>Athletic Muscle Gain / Hypertrophy (~1.4g/kg)</option>
+                  <option value="recomp">Body Recomposition & Fat Loss (~1.6g/kg)</option>
+                  <option value="maintenance">Cardio Fitness & Health (~1.0g/kg)</option>
+                </select>
+              </div>
+
+              <!-- AI Protein Recommendation Pill -->
+              <div class="p-2.5 bg-purple-50 rounded-xl border border-purple-200/70">
+                <div class="flex items-center justify-between text-xs">
+                  <div class="flex items-center gap-1.5">
+                    <span class="text-sm">🤖</span>
+                    <span class="font-bold text-purple-900">AI Suggested Target:</span>
+                  </div>
+                  <span id="reg-ai-protein-suggestion" class="font-extrabold text-purple-800 text-sm">94g / day</span>
+                </div>
+                <p id="reg-ai-protein-rationale" class="text-[10px] text-purple-700 mt-1">
+                  Calculated as 1.4g per kg for your 67kg weight to maximize lean muscle synthesis.
+                </p>
+              </div>
+
+              <div>
+                <label for="reg-diet" class="block text-[11px] font-semibold text-slate-600 mb-1">Dietary Preference</label>
+                <select id="reg-diet" class="w-full text-xs p-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium text-slate-700 bg-slate-50">
+                  <option value="Plant-Based / Vegetarian" selected>Plant-Based / Vegetarian</option>
+                  <option value="Vegan">Vegan (100% Plant-Based)</option>
+                  <option value="Pescatarian">Pescatarian (Plant-Based + Fish)</option>
+                  <option value="Balanced Omnivore">Balanced Omnivore</option>
+                  <option value="High-Protein / Keto">High-Protein / Low-Carb</option>
+                </select>
+              </div>
+
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label for="reg-protein-target" class="block text-[11px] font-semibold text-slate-600 mb-1">Daily Target (g)</label>
+                  <div class="relative">
+                    <input type="number" id="reg-protein-target" value="94" min="40" max="250" class="w-full text-xs p-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium pr-6">
+                    <span class="absolute right-2.5 top-2 text-[10px] text-slate-400 font-bold">g</span>
+                  </div>
+                </div>
+                <div>
+                  <label for="reg-routine" class="block text-[11px] font-semibold text-slate-600 mb-1">Work Shift & Routine</label>
+                  <select id="reg-routine" class="w-full text-xs p-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium text-slate-700 bg-slate-50">
+                    <option value="Late Shift (1:00 PM – 10:00 PM)" selected>Late Shift (1 PM – 10 PM)</option>
+                    <option value="Standard Day (9:00 AM – 6:00 PM)">Standard Day (9 AM – 6 PM)</option>
+                    <option value="Night Shift">Night Shift</option>
+                    <option value="Flexible / Remote">Flexible / Remote</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="reg-error-msg" class="text-xs text-red-600 hidden font-medium"></div>
+
+          <button type="submit" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition shadow-sm">
+            Save Profile & Start Tracking
+          </button>
+        </form>
+
+        <!-- Login Form (Hidden by default) -->
+        <form id="login-form" class="space-y-4 hidden">
+          <div>
+            <label for="login-email" class="block text-xs font-bold text-slate-700 mb-1">Email</label>
+            <input type="email" id="login-email" required placeholder="name@example.com" class="w-full text-xs p-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium">
+          </div>
+          <div>
+            <label for="login-password" class="block text-xs font-bold text-slate-700 mb-1">Password</label>
+            <input type="password" id="login-password" required placeholder="••••••••" class="w-full text-xs p-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium">
+          </div>
+
+          <div id="login-error-msg" class="text-xs text-red-600 hidden font-medium"></div>
+
+          <button type="submit" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition shadow-sm">
+            Sign In to Dashboard
+          </button>
+        </form>
+
+        <!-- Quick 1-Click Demo Shortcut -->
+        <div class="mt-6 pt-4 border-t border-slate-100 text-center">
+          <p class="text-[11px] text-slate-400 mb-2">Want to test right away without filling forms?</p>
+          <button type="button" id="quick-demo-btn" class="w-full py-2 border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-bold rounded-xl transition">
+            ⚡ Quick Demo Login (Auto-fill Profile)
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ========================================== -->
+  <!-- 2. MAIN TRACKER APPLICATION VIEW           -->
+  <!-- ========================================== -->
+  <div id="app-view" class="hidden">
+    <div class="max-w-4xl mx-auto px-4 py-8">
+      
+      <!-- Top User Bar & Header -->
+      <header class="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-6 mb-6 border-b border-slate-200 gap-4">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="p-2 bg-emerald-600 text-white rounded-xl text-lg font-bold shadow-sm">HE</span>
+            <h1 class="text-2xl font-extrabold tracking-tight text-slate-900">HealthEngine</h1>
+            <span class="bg-purple-100 text-purple-800 text-xs px-2.5 py-0.5 rounded-full font-bold">🧠 AI Brain</span>
+          </div>
+          <p class="text-sm text-slate-500 mt-1">Answering: <span class="font-medium text-slate-700 italic">"Am I healthier today than yesterday?"</span></p>
+        </div>
+
+        <!-- User Profile Pill & Actions -->
+        <div class="flex flex-wrap items-center gap-3">
+          <button type="button" id="user-profile-badge-btn" class="flex items-center gap-2 px-3 py-1.5 bg-white border border-slate-200 hover:border-emerald-300 rounded-xl shadow-sm text-xs transition cursor-pointer">
+            <span class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-[11px]" id="user-avatar-initial">A</span>
+            <div class="text-left">
+              <span class="font-bold text-slate-800 block leading-tight" id="header-user-name">Alex</span>
+              <span class="text-[10px] text-slate-400 leading-tight" id="header-user-meta">67 kg • 94g target</span>
+            </div>
+            <span class="text-slate-400 text-[10px]">⚙️</span>
+          </button>
+
+          <span id="current-date-badge" class="text-xs font-semibold px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-slate-600 shadow-sm">Today</span>
+          <button id="reset-day-btn" class="text-xs text-slate-500 hover:text-slate-800 underline">Reset Day</button>
+          <button id="signout-btn" class="text-xs text-slate-500 hover:text-red-600 font-medium transition">Sign Out</button>
+        </div>
+      </header>
+
+      <!-- Main Daily Progression Banner -->
+      <section class="bg-gradient-to-br from-emerald-600 to-teal-700 text-white rounded-2xl p-6 shadow-md mb-6">
+        <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+          <div>
+            <span class="text-xs uppercase tracking-wider text-emerald-200 font-bold">Daily Health Engine Status</span>
+            <h2 id="progression-title" class="text-2xl md:text-3xl font-extrabold mt-1">Healthier Today! 🎉</h2>
+            <p id="progression-desc" class="text-emerald-100 text-sm mt-2 max-w-lg">
+              Progressive overload logged in gym, good sleep, and solid protein intake kept you ahead of yesterday.
+            </p>
+            <div class="flex items-center gap-2 mt-4">
+              <span class="px-2.5 py-1 bg-white/20 rounded-md text-xs font-semibold backdrop-blur-sm" id="comparison-badge">▲ +8 pts vs Yesterday</span>
+              <span class="text-xs text-emerald-100" id="yesterday-score-text">Yesterday's baseline: 74/100</span>
+            </div>
+          </div>
+
+          <div class="flex flex-col items-center justify-center bg-white/10 backdrop-blur-md rounded-2xl p-5 border border-white/20 min-w-[150px] text-center">
+            <span class="text-xs font-medium text-emerald-100">Daily Health Score</span>
+            <div class="text-4xl font-extrabold mt-1 tracking-tight" id="score-display">82<span class="text-xl font-normal text-emerald-200">/100</span></div>
+            <span class="text-[11px] text-emerald-200 mt-1" id="score-status-pill">Active & Fueled</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- PROMINENT 4-TAB NAVIGATION BAR             -->
+      <!-- ========================================== -->
+      <nav class="grid grid-cols-2 sm:grid-cols-4 p-1.5 bg-slate-200/80 rounded-2xl mb-6 gap-1.5 shadow-inner">
+        <button type="button" id="nav-tab-workout" class="py-3 px-2 rounded-xl text-xs font-extrabold transition flex items-center justify-center gap-1.5 bg-white text-orange-600 shadow-sm">
+          <span class="text-base">🏋️</span>
+          <span>Workout</span>
+          <span id="tab-workout-badge" class="text-[10px] bg-orange-100 text-orange-800 px-1.5 py-0.5 rounded-full font-bold">3 Sets</span>
+        </button>
+
+        <button type="button" id="nav-tab-food" class="py-3 px-2 rounded-xl text-xs font-extrabold transition flex items-center justify-center gap-1.5 text-slate-600 hover:text-slate-900">
+          <span class="text-base">🥗</span>
+          <span>Food</span>
+          <span id="tab-food-badge" class="text-[10px] bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded-full font-bold">68g</span>
+        </button>
+
+        <button type="button" id="nav-tab-wellness" class="py-3 px-2 rounded-xl text-xs font-extrabold transition flex items-center justify-center gap-1.5 text-slate-600 hover:text-slate-900">
+          <span class="text-base">🌙</span>
+          <span>Wellness</span>
+          <span id="tab-wellness-badge" class="text-[10px] bg-indigo-100 text-indigo-800 px-1.5 py-0.5 rounded-full font-bold">7.5h</span>
+        </button>
+
+        <button type="button" id="nav-tab-trends" class="py-3 px-2 rounded-xl text-xs font-extrabold transition flex items-center justify-center gap-1.5 text-slate-600 hover:text-slate-900">
+          <span class="text-base">📈</span>
+          <span>Weekly & Chart</span>
+          <span class="text-[10px] bg-purple-100 text-purple-800 px-1.5 py-0.5 rounded-full font-bold">Charts</span>
+        </button>
+      </nav>
+
+
+      <!-- ========================================== -->
+      <!-- TAB 1: WORKOUT & PROGRESSIVE OVERLOAD      -->
+      <!-- ========================================== -->
+      <div id="view-tab-workout" class="space-y-6">
+        
+        <!-- Quick Jump to Analytics Chart Banner -->
+        <div class="bg-gradient-to-r from-orange-500/10 via-purple-500/10 to-indigo-500/10 border border-orange-200/80 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-sm">
+          <div class="flex items-center gap-3">
+            <span class="text-2xl">📊</span>
+            <div>
+              <span class="text-xs font-extrabold text-slate-900 block">Bench Press Strength Curve & Analytics</span>
+              <span class="text-[11px] text-slate-500">Track your calculated 1RM progression and volume curve over the past 6 weeks</span>
+            </div>
+          </div>
+          <button type="button" id="jump-to-chart-btn" class="w-full sm:w-auto px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition shadow-sm flex items-center justify-center gap-1.5">
+            <span>View Strength Chart</span>
+            <span>📈</span>
+          </button>
+        </div>
+
+        <section class="bg-white rounded-2xl p-6 border border-orange-200 shadow-sm">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-100 gap-3">
+            <div class="flex items-center gap-2.5">
+              <span class="w-9 h-9 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center font-bold text-lg">🏋️</span>
+              <div>
+                <div class="flex items-center gap-2">
+                  <h3 class="font-extrabold text-slate-900 text-lg">Gym & Progressive Overload Tracker</h3>
+                  <span class="text-[10px] bg-orange-100 text-orange-800 font-bold px-2 py-0.5 rounded-full">Core Module</span>
+                  <span id="workout-pts-badge" class="text-[10px] bg-emerald-50 text-emerald-800 font-bold px-2 py-0.5 rounded-full border border-emerald-200">+35 pts</span>
+                </div>
+                <p class="text-xs text-slate-500">Track Push, Pull, Legs, Core, and Cardio with automated PR detection</p>
+              </div>
+            </div>
+
+            <!-- Quick Actions & 5-Split Selector (Push, Pull, Legs, Core, Cardio) -->
+            <div class="flex flex-wrap items-center gap-2">
+              <div class="flex rounded-lg border border-slate-200 bg-slate-50 p-0.5 overflow-x-auto">
+                <button type="button" class="split-tab-btn px-2.5 py-1 rounded-md text-xs font-bold bg-white text-orange-600 shadow-sm transition" data-split="Push">Push</button>
+                <button type="button" class="split-tab-btn px-2.5 py-1 rounded-md text-xs font-bold text-slate-600 hover:text-slate-900 transition" data-split="Pull">Pull</button>
+                <button type="button" class="split-tab-btn px-2.5 py-1 rounded-md text-xs font-bold text-slate-600 hover:text-slate-900 transition" data-split="Legs">Legs</button>
+                <button type="button" class="split-tab-btn px-2.5 py-1 rounded-md text-xs font-bold text-slate-600 hover:text-slate-900 transition" data-split="Core">Core</button>
+                <button type="button" class="split-tab-btn px-2.5 py-1 rounded-md text-xs font-bold text-slate-600 hover:text-slate-900 transition" data-split="Cardio">Cardio</button>
+              </div>
+              <button type="button" id="toggle-workout-done-btn" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-600 text-white shadow-sm transition">
+                ✓ Workout Active
+              </button>
+            </div>
+          </div>
+
+          <div id="workout-content-area" class="mt-5 space-y-6">
+            
+            <!-- Exercise Header & AI Overload Prescription -->
+            <div class="bg-slate-50 rounded-xl p-4 border border-slate-200">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <label for="exercise-select" class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">Select Exercise to Log</label>
+                  <select id="exercise-select" class="text-sm font-extrabold text-slate-900 bg-white border border-slate-200 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                    <!-- Populated by JavaScript according to split -->
+                  </select>
+                </div>
+
+                <!-- Overload History & Target Badge -->
+                <div class="flex flex-col sm:items-end text-xs">
+                  <span class="text-slate-500 text-[11px]">Previous Session Record:</span>
+                  <span id="prev-session-badge" class="font-bold text-slate-800 bg-white px-2.5 py-1 rounded-md border border-slate-200 mt-0.5">
+                    50 kg × 8 reps (Est. 1RM: 63.3 kg)
+                  </span>
+                  <span id="ai-overload-target" class="text-[11px] text-orange-700 font-bold mt-1">
+                    🎯 Overload Target Today: 50 kg × 9–10 reps OR 52.5 kg × 6–8 reps
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Logged Sets Table -->
+            <div class="overflow-x-auto">
+              <table class="w-full text-xs text-left">
+                <thead>
+                  <tr class="text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-100">
+                    <th class="py-2 px-2">Set</th>
+                    <th class="py-2 px-2">Previous</th>
+                    <th class="py-2 px-3">Weight (kg)</th>
+                    <th class="py-2 px-3">Reps</th>
+                    <th class="py-2 px-2">1RM Est.</th>
+                    <th class="py-2 px-3">Overload Status</th>
+                    <th class="py-2 px-2 text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="sets-table-body" class="divide-y divide-slate-100">
+                  <!-- Dynamically populated sets -->
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Set Logging Input Row -->
+            <form id="add-set-form" class="p-3 bg-orange-50/50 rounded-xl border border-orange-200/60 flex flex-wrap items-center gap-3">
+              <span class="text-xs font-bold text-orange-900">Log Next Set:</span>
+              
+              <div class="flex items-center gap-1.5">
+                <label for="input-weight" class="text-[11px] font-semibold text-slate-600">Weight / Load:</label>
+                <input type="number" id="input-weight" value="50" step="0.5" min="0" max="400" class="w-16 text-xs p-1.5 border border-slate-200 rounded-lg bg-white font-bold text-center">
+                <span class="text-[10px] text-slate-500 font-semibold">kg</span>
+              </div>
+
+              <div class="flex items-center gap-1.5">
+                <label for="input-reps" class="text-[11px] font-semibold text-slate-600">Reps / Mins:</label>
+                <input type="number" id="input-reps" value="10" min="1" max="120" class="w-14 text-xs p-1.5 border border-slate-200 rounded-lg bg-white font-bold text-center">
+              </div>
+
+              <button type="submit" class="px-4 py-1.5 bg-orange-600 hover:bg-orange-700 text-white text-xs font-bold rounded-lg shadow-sm transition">
+                + Log Set
+              </button>
+
+              <button type="button" id="quick-overload-pr-btn" class="ml-auto text-[11px] text-orange-700 hover:text-orange-900 underline font-medium">
+                ⚡ Pre-fill Push Session with Overload PR
+              </button>
+            </form>
+
+            <!-- Workout Volume & 5-Split Muscle & Cardio Balance Dashboard -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+              
+              <!-- Session Stats Card -->
+              <div class="p-4 rounded-xl bg-slate-50 border border-slate-200">
+                <span class="text-xs font-bold text-slate-700 uppercase tracking-wider block mb-3">Session Volume & Progression</span>
+                <div class="grid grid-cols-3 gap-2 text-center mb-3">
+                  <div class="p-2 bg-white rounded-lg border border-slate-100">
+                    <span class="text-[10px] text-slate-400 block font-semibold">Total Volume</span>
+                    <span class="text-sm font-extrabold text-slate-800" id="total-session-volume">1,480 kg</span>
+                  </div>
+                  <div class="p-2 bg-white rounded-lg border border-orange-100 bg-orange-50/40">
+                    <span class="text-[10px] text-orange-700 block font-semibold">Best Est. 1RM</span>
+                    <span class="text-sm font-extrabold text-orange-700" id="session-best-1rm">66.7 kg</span>
+                  </div>
+                  <div class="p-2 bg-white rounded-lg border border-slate-100">
+                    <span class="text-[10px] text-slate-400 block font-semibold">Working Sets</span>
+                    <span class="text-sm font-extrabold text-slate-800" id="session-sets-count">3 Sets</span>
+                  </div>
+                </div>
+                <div id="overload-summary-callout" class="p-2.5 bg-emerald-50 rounded-lg border border-emerald-200 text-xs text-emerald-800 flex items-center gap-2">
+                  <span class="text-base">🔥</span>
+                  <span class="font-bold" id="overload-summary-text">Progressive Overload Achieved! +2 reps vs last week at 50kg.</span>
+                </div>
+              </div>
+
+              <!-- Weekly Muscle, Core & Cardio Balance Visualizer -->
+              <div class="p-4 rounded-xl bg-slate-50 border border-slate-200">
+                <div class="flex justify-between items-center mb-2">
+                  <span class="text-xs font-bold text-slate-700 uppercase tracking-wider">Weekly Training Balance</span>
+                  <span class="text-[10px] text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-full">Optimal Mix</span>
+                </div>
+                <p class="text-[11px] text-slate-500 mb-3">Balances resistance, core stability, and cardiovascular endurance:</p>
+                
+                <div class="space-y-2 text-xs">
+                  <div>
+                    <div class="flex justify-between text-[11px] font-semibold text-slate-700 mb-0.5">
+                      <span>Upper Body (Push / Pull)</span>
+                      <span id="muscle-chest-sets" class="text-slate-500">22 / 24 sets</span>
+                    </div>
+                    <div class="w-full bg-slate-200 rounded-full h-1.5 overflow-hidden">
+                      <div id="bar-chest" class="bg-orange-500 h-1.5 rounded-full" style="width: 88%"></div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <div class="flex justify-between text-[11px] font-semibold text-slate-700 mb-0.5">
+                      <span>Lower Body (Legs & Glutes)</span>
+                      <span id="muscle-legs-sets" class="text-slate-500">14 / 16 sets</span>
+                    </div>
+                    <div class="w-full bg-slate-200 rounded-full h-1.5 overflow-hidden">
+                      <div id="bar-legs" class="bg-indigo-500 h-1.5 rounded-full" style="width: 85%"></div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <div class="flex justify-between text-[11px] font-semibold text-slate-700 mb-0.5">
+                      <span>Core & Trunk Stability</span>
+                      <span id="muscle-back-sets" class="text-slate-500">8 / 10 sets</span>
+                    </div>
+                    <div class="w-full bg-slate-200 rounded-full h-1.5 overflow-hidden">
+                      <div id="bar-back" class="bg-emerald-500 h-1.5 rounded-full" style="width: 80%"></div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <div class="flex justify-between text-[11px] font-semibold text-slate-700 mb-0.5">
+                      <span>Cardio & Aerobic Fitness</span>
+                      <span class="text-slate-500">60 / 75 mins</span>
+                    </div>
+                    <div class="w-full bg-slate-200 rounded-full h-1.5 overflow-hidden">
+                      <div class="bg-teal-500 h-1.5 rounded-full" style="width: 80%"></div>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+
+            </div>
+
+          </div>
+        </section>
+
+      </div>
+
+
+      <!-- ========================================== -->
+      <!-- TAB 2: FOOD & NUTRITION ENGINE             -->
+      <!-- ========================================== -->
+      <div id="view-tab-food" class="space-y-6 hidden">
+        
+        <section class="bg-white rounded-2xl p-6 border border-emerald-200 shadow-sm">
+          <div class="flex items-center justify-between pb-4 border-b border-slate-100 mb-5">
+            <div class="flex items-center gap-2.5">
+              <span class="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-lg">🥗</span>
+              <div>
+                <div class="flex items-center gap-2">
+                  <h3 class="font-extrabold text-slate-900 text-lg">Smart Meal & Nutrition Logger</h3>
+                  <span class="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full">NLP Parser</span>
+                  <span id="nutrition-pts-badge" class="text-[10px] bg-emerald-50 text-emerald-800 font-bold px-2 py-0.5 rounded-full border border-emerald-200">+20 pts</span>
+                </div>
+                <p class="text-xs text-slate-500">Describe any meal in plain English without weighing grams</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Input Box & Quick Samples -->
+          <div class="space-y-4">
+            <div>
+              <label for="meal-input" class="block text-xs font-bold text-slate-700 mb-1.5">What did you eat?</label>
+              <textarea id="meal-input" rows="2" placeholder="e.g., Grilled tofu with quinoa, broccoli, avocado, and a cup of greek yogurt" class="w-full text-xs p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none font-medium text-slate-800"></textarea>
+              <div class="flex justify-end mt-2">
+                <button type="button" id="log-meal-btn" class="px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl transition shadow-sm">
+                  Log Meal & Estimate Macros
+                </button>
+              </div>
+            </div>
+
+            <!-- Quick Diverse Global Meal Samples -->
+            <div class="pt-2">
+              <span class="text-[11px] font-semibold text-slate-500 block mb-2">Tap a common meal to try:</span>
+              <div class="flex flex-wrap gap-1.5">
+                <button type="button" class="sample-meal-pill text-[11px] bg-slate-100 hover:bg-emerald-50 hover:text-emerald-800 text-slate-700 px-2.5 py-1 rounded-lg border border-slate-200 transition">
+                  Oatmeal + Blueberries + Chia Seeds + Peanut Butter
+                </button>
+                <button type="button" class="sample-meal-pill text-[11px] bg-slate-100 hover:bg-emerald-50 hover:text-emerald-800 text-slate-700 px-2.5 py-1 rounded-lg border border-slate-200 transition">
+                  Grilled Tofu / Paneer + Brown Rice + Steamed Broccoli
+                </button>
+                <button type="button" class="sample-meal-pill text-[11px] bg-slate-100 hover:bg-emerald-50 hover:text-emerald-800 text-slate-700 px-2.5 py-1 rounded-lg border border-slate-200 transition">
+                  Lentil Soup + Sourdough Toast + Avocado
+                </button>
+                <button type="button" class="sample-meal-pill text-[11px] bg-slate-100 hover:bg-emerald-50 hover:text-emerald-800 text-slate-700 px-2.5 py-1 rounded-lg border border-slate-200 transition">
+                  Greek Yogurt + Walnuts + Pumpkin Seeds
+                </button>
+                <button type="button" class="sample-meal-pill text-[11px] bg-slate-100 hover:bg-emerald-50 hover:text-emerald-800 text-slate-700 px-2.5 py-1 rounded-lg border border-slate-200 transition">
+                  Coffee + Roasted Peanuts + Almonds
+                </button>
+              </div>
+            </div>
+
+            <!-- Daily Nutrition Totals Dashboard -->
+            <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 mt-4">
+              <div class="flex justify-between items-center mb-3">
+                <span class="text-xs font-bold text-slate-700 uppercase tracking-wider">Today's Nutrition Breakdown</span>
+                <span class="text-[11px] text-slate-500 font-medium" id="meals-count-text">3 meals logged</span>
+              </div>
+              
+              <div class="grid grid-cols-3 gap-3 text-center mb-4">
+                <div class="p-3 bg-white rounded-xl border border-slate-100 shadow-sm">
+                  <span class="text-[10px] text-slate-400 block font-semibold uppercase">Calories</span>
+                  <span class="text-base font-extrabold text-slate-800" id="total-calories">1,850</span>
+                </div>
+                <div class="p-3 bg-white rounded-xl border border-emerald-100 bg-emerald-50/40 shadow-sm">
+                  <span class="text-[10px] text-emerald-700 block font-semibold uppercase">Protein</span>
+                  <span class="text-base font-extrabold text-emerald-700" id="total-protein">68g</span>
+                  <span class="text-[10px] text-emerald-600 block font-medium" id="protein-target-badge">Target: 94g</span>
+                </div>
+                <div class="p-3 bg-white rounded-xl border border-slate-100 shadow-sm">
+                  <span class="text-[10px] text-slate-400 block font-semibold uppercase">Fiber</span>
+                  <span class="text-base font-extrabold text-slate-800" id="total-fiber">26g</span>
+                </div>
+              </div>
+
+              <!-- Protein Progress Bar -->
+              <div class="mb-3">
+                <div class="flex justify-between text-[11px] font-semibold text-slate-600 mb-1">
+                  <span>Protein Target Completion</span>
+                  <span id="protein-percent-text" class="text-emerald-700 font-bold">72%</span>
+                </div>
+                <div class="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
+                  <div id="protein-progress-bar" class="bg-emerald-600 h-2 rounded-full transition-all duration-300" style="width: 72%"></div>
+                </div>
+              </div>
+
+              <!-- Nutrition Coach Tip -->
+              <div class="p-3 bg-amber-50 rounded-xl border border-amber-200/60 text-amber-900 text-xs">
+                <div class="flex items-center gap-1.5 font-bold mb-1">
+                  <span>💡</span>
+                  <span>Nutrition Coach Tip:</span>
+                </div>
+                <p class="text-[11px] leading-relaxed text-amber-800" id="coach-tip-text">
+                  Your protein is at 68g against your 94g goal. Adding greek yogurt, cottage cheese, roasted nuts, or a protein shake can bridge the remaining 26g before your day ends.
+                </p>
+              </div>
+            </div>
+
+            <!-- Logged Meals List -->
+            <div>
+              <span class="text-xs font-bold text-slate-700 block mb-2">Today's Logged Food Items:</span>
+              <div id="meals-list" class="space-y-2 max-h-56 overflow-y-auto pr-1 text-xs">
+                <!-- Dynamically populated -->
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+      </div>
+
+
+      <!-- ========================================== -->
+      <!-- TAB 3: SLEEP, STRESS & WELLNESS            -->
+      <!-- ========================================== -->
+      <div id="view-tab-wellness" class="space-y-6 hidden">
+        
+        <!-- NEW: AI RECOVERY & REST DAY RECOMMENDER -->
+        <section class="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl p-6 border border-indigo-200 shadow-sm">
+          <div class="flex items-center justify-between pb-3 border-b border-indigo-100 mb-4">
+            <div class="flex items-center gap-2">
+              <span class="text-2xl">⚡</span>
+              <div>
+                <h3 class="font-extrabold text-indigo-950 text-base">Tomorrow Recovery & Readiness Engine</h3>
+                <p class="text-[11px] text-indigo-700">Calculates physical fatigue, sleep debt, and training readiness</p>
+              </div>
+            </div>
+            <span id="readiness-score-badge" class="px-3 py-1 bg-emerald-600 text-white rounded-xl text-xs font-bold shadow-sm">
+              Readiness: 88% (Prime)
+            </span>
+          </div>
+
+          <div class="p-4 bg-white rounded-xl border border-indigo-100 shadow-sm space-y-2">
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span class="font-bold text-xs text-slate-900" id="recovery-recommendation-title">Tomorrow: Prime for High Intensity Training</span>
+            </div>
+            <p class="text-xs text-slate-600 leading-relaxed" id="recovery-recommendation-text">
+              Based on your 7.5 hours of restorative sleep, low joint soreness, and consistent protein intake, your neuromuscular system is fully recovered. You are cleared for your scheduled Pull or Leg session with progressive overload.
+            </p>
+          </div>
+        </section>
+
+        <section class="bg-white rounded-2xl p-6 border border-indigo-200 shadow-sm">
+          <div class="flex items-center justify-between pb-4 border-b border-slate-100 mb-5">
+            <div class="flex items-center gap-2.5">
+              <span class="w-9 h-9 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold text-lg">🌙</span>
+              <div>
+                <div class="flex items-center gap-2">
+                  <h3 class="font-extrabold text-slate-900 text-lg">Sleep, Recovery & Daily Wellness</h3>
+                  <span class="text-[10px] bg-indigo-100 text-indigo-800 font-bold px-2 py-0.5 rounded-full">Vitality</span>
+                  <span id="sleep-pts-badge" class="text-[10px] bg-indigo-50 text-indigo-700 font-bold px-2 py-0.5 rounded-full border border-indigo-200">+25 pts</span>
+                </div>
+                <p class="text-xs text-slate-500">Sleep depth, stress buffer, meditation & joint readiness</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="space-y-6">
+            
+            <!-- Sleep Duration & Morning Freshness -->
+            <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-4">
+              <div>
+                <div class="flex justify-between text-xs font-bold text-slate-700 mb-1.5">
+                  <label for="sleep-hours-slider">Hours of Sleep</label>
+                  <span id="sleep-hours-text" class="text-indigo-600 font-bold">7.5 Hours</span>
+                </div>
+                <input type="range" id="sleep-hours-slider" min="4" max="10" step="0.5" value="7.5" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600">
+                <div class="flex justify-between text-[10px] text-slate-400 mt-1">
+                  <span>4h (Deficit)</span>
+                  <span>6h</span>
+                  <span>7.5h (Target)</span>
+                  <span>9h+ (Deep recovery)</span>
+                </div>
+              </div>
+
+              <div>
+                <span class="block text-xs font-bold text-slate-700 mb-2">Morning Freshness & Energy</span>
+                <div class="grid grid-cols-3 gap-2">
+                  <button type="button" class="recovery-btn py-2.5 text-xs font-semibold rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 transition" data-val="1">😴 Tired</button>
+                  <button type="button" class="recovery-btn py-2.5 text-xs font-bold rounded-xl border-2 border-indigo-600 bg-indigo-50 text-indigo-900 transition" data-val="2">🙂 Okay</button>
+                  <button type="button" class="recovery-btn py-2.5 text-xs font-semibold rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 transition" data-val="3">⚡ Energized</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Stress, Meditation & Injury Tracker -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              
+              <!-- Stress Level -->
+              <div class="p-4 rounded-xl bg-slate-50 border border-slate-200">
+                <span class="text-xs font-bold text-slate-700 block mb-2">🧘 Stress Level (Work & Life)</span>
+                <div class="grid grid-cols-3 gap-2">
+                  <button type="button" class="stress-btn py-2 text-xs font-bold rounded-lg border-2 border-emerald-600 bg-emerald-50 text-emerald-900 transition" data-stress="Low">Low</button>
+                  <button type="button" class="stress-btn py-2 text-xs font-semibold rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-100 transition" data-stress="Moderate">Moderate</button>
+                  <button type="button" class="stress-btn py-2 text-xs font-semibold rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-100 transition" data-stress="High">High</button>
+                </div>
+                <p class="text-[10px] text-slate-500 mt-2">Low stress preserves recovery and supports hormonal balance.</p>
+              </div>
+
+              <!-- Meditation / Breathwork -->
+              <div class="p-4 rounded-xl bg-slate-50 border border-slate-200">
+                <span class="text-xs font-bold text-slate-700 block mb-2">🌬️ Mindfulness & Breathwork</span>
+                <div class="flex items-center justify-between">
+                  <div>
+                    <span class="text-xs font-semibold text-slate-800 block" id="meditation-status-text">10 mins completed</span>
+                    <span class="text-[10px] text-slate-400">Box breathing / meditation</span>
+                  </div>
+                  <button type="button" id="toggle-meditation-btn" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white transition shadow-sm">
+                    ✓ Done
+                  </button>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Injury / Soreness Status -->
+            <div class="p-4 rounded-xl bg-slate-50 border border-slate-200">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-bold text-slate-700">🩺 Joint & Soreness Check</span>
+                <span id="soreness-badge" class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-emerald-100 text-emerald-800">Ready to Lift</span>
+              </div>
+              <div class="grid grid-cols-3 gap-2">
+                <button type="button" class="soreness-btn py-2 text-xs font-bold rounded-lg border-2 border-emerald-600 bg-emerald-50 text-emerald-900 transition" data-soreness="None">100% Fine</button>
+                <button type="button" class="soreness-btn py-2 text-xs font-semibold rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-100 transition" data-soreness="Mild">Mild Soreness</button>
+                <button type="button" class="soreness-btn py-2 text-xs font-semibold rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-100 transition" data-soreness="Joint">Joint Pinch/Tweak</button>
+              </div>
+            </div>
+
+            <!-- Lifestyle Habits -->
+            <div class="p-4 rounded-xl bg-slate-50 border border-slate-200">
+              <div class="flex items-center justify-between mb-3">
+                <span class="text-xs font-bold text-slate-700">🌱 Daily Micro-Habits & Longevity</span>
+                <span id="habits-pts-badge" class="text-xs font-bold px-2 py-0.5 rounded bg-teal-50 text-teal-700">+15 pts</span>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <label class="flex items-center gap-3 p-3 rounded-xl border border-slate-200 bg-white cursor-pointer hover:bg-slate-50 transition">
+                  <input type="checkbox" id="habit-acv" checked class="w-4 h-4 rounded text-emerald-600 accent-emerald-600">
+                  <div>
+                    <span class="block text-xs font-bold text-slate-800">Apple Cider / Lemon Water</span>
+                    <span class="text-[10px] text-slate-500">Digestion & glucose buffer</span>
+                  </div>
+                </label>
+
+                <label class="flex items-center gap-3 p-3 rounded-xl border border-slate-200 bg-white cursor-pointer hover:bg-slate-50 transition">
+                  <input type="checkbox" id="habit-seeds" checked class="w-4 h-4 rounded text-emerald-600 accent-emerald-600">
+                  <div>
+                    <span class="block text-xs font-bold text-slate-800">Omega-3 Seeds / Nuts</span>
+                    <span class="text-[10px] text-slate-500">Essential healthy lipids</span>
+                  </div>
+                </label>
+
+                <label class="flex items-center gap-3 p-3 rounded-xl border border-slate-200 bg-white cursor-pointer hover:bg-slate-50 transition">
+                  <input type="checkbox" id="habit-fasting" checked class="w-4 h-4 rounded text-emerald-600 accent-emerald-600">
+                  <div>
+                    <span class="block text-xs font-bold text-slate-800">16:8 Fasting Window</span>
+                    <span class="text-[10px] text-slate-500">Metabolic flexibility</span>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+      </div>
+
+
+      <!-- ========================================== -->
+      <!-- TAB 4: WEEKLY HISTORY & PROGRESSION TRENDS -->
+      <!-- ========================================== -->
+      <div id="view-tab-trends" class="space-y-6 hidden">
+        
+        <!-- EXERCISE STRENGTH CURVE & 1RM ANALYTICS CHART -->
+        <section class="bg-white rounded-2xl p-6 border border-orange-200 shadow-sm">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-100 gap-3 mb-4">
+            <div class="flex items-center gap-2.5">
+              <span class="w-9 h-9 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center font-bold text-lg">📊</span>
+              <div>
+                <div class="flex items-center gap-2">
+                  <h3 class="font-extrabold text-slate-900 text-lg">Strength Progression Curve</h3>
+                  <span class="text-[10px] bg-orange-100 text-orange-800 font-bold px-2 py-0.5 rounded-full">Chart.js Analytics</span>
+                </div>
+                <p class="text-xs text-slate-500">Estimated 1RM strength and top working weight trajectory over time</p>
+              </div>
+            </div>
+
+            <!-- Exercise Selector for Chart -->
+            <div class="flex items-center gap-2">
+              <label for="strength-chart-exercise" class="text-xs font-bold text-slate-600">Exercise:</label>
+              <select id="strength-chart-exercise" class="text-xs font-extrabold text-slate-900 bg-slate-50 border border-slate-200 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                <option value="bench" selected>Barbell Bench Press</option>
+                <option value="squat">Barbell Back Squat</option>
+                <option value="rdl">Romanian Deadlift (RDL)</option>
+                <option value="lat">Lat Pulldown</option>
+                <option value="ohp">Overhead Shoulder Press</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Strength Stat Highlights -->
+          <div class="grid grid-cols-3 gap-3 text-center mb-5">
+            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+              <span class="text-[10px] text-slate-400 uppercase font-bold block">Current Best 1RM</span>
+              <span class="text-lg font-black text-orange-600" id="chart-best-1rm">66.7 kg</span>
+              <span class="text-[10px] text-emerald-600 font-bold block mt-0.5" id="chart-pr-badge">🔥 All-Time Peak</span>
+            </div>
+            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+              <span class="text-[10px] text-slate-400 uppercase font-bold block">6-Week Net Gain</span>
+              <span class="text-lg font-black text-slate-800" id="chart-gain-val">+12.7 kg</span>
+              <span class="text-[10px] text-slate-500 font-medium block mt-0.5" id="chart-gain-pct">+23.5% strength</span>
+            </div>
+            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+              <span class="text-[10px] text-slate-400 uppercase font-bold block">Overload Velocity</span>
+              <span class="text-lg font-black text-purple-700" id="chart-rate-val">+2.1 kg/wk</span>
+              <span class="text-[10px] text-purple-600 font-medium block mt-0.5">Optimal hypertrophy</span>
+            </div>
+          </div>
+
+          <!-- Visual Graph Container (Fixed Height as required) -->
+          <div class="relative h-64 sm:h-72 w-full mb-4">
+            <canvas id="strength-chart"></canvas>
+          </div>
+
+          <!-- Contextual Progression Story -->
+          <div class="p-3 bg-orange-50/60 rounded-xl border border-orange-200/70 text-xs text-orange-950 flex items-start gap-2.5">
+            <span class="text-base mt-0.5">💡</span>
+            <div>
+              <span class="font-bold block" id="strength-story-title">Bench Press Strength Progression:</span>
+              <p class="text-[11px] text-orange-900 mt-0.5 leading-relaxed" id="strength-story-desc">
+                Your bench press exhibits clear non-linear progressive overload. After consolidating volume at 47.5kg in Weeks 2–3, you broke the 50kg barrier and hit today's 10-rep milestone, lifting your estimated 1RM to a new peak of 66.7 kg.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <!-- 7-Day Daily Score Progression Section -->
+        <section class="bg-white rounded-2xl p-6 border border-purple-200 shadow-sm">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-100 gap-3 mb-6">
+            <div class="flex items-center gap-2.5">
+              <span class="w-9 h-9 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center font-bold text-lg">📈</span>
+              <div>
+                <div class="flex items-center gap-2">
+                  <h3 class="font-extrabold text-slate-900 text-lg">Weekly History & Health Trajectory</h3>
+                  <span class="text-[10px] bg-purple-100 text-purple-800 font-bold px-2 py-0.5 rounded-full">7-Day Trajectory</span>
+                </div>
+                <p class="text-xs text-slate-500">Compare day-over-day progression, lifting volume, and recovery curves</p>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+              <span class="text-xs text-slate-500 font-medium">Net Weekly Trend:</span>
+              <span class="px-2.5 py-1 bg-emerald-100 text-emerald-800 rounded-lg text-xs font-bold">+8 pts overall</span>
+            </div>
+          </div>
+
+          <!-- Weekly Metric Summaries (KPIs) -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 text-center">
+              <span class="text-[10px] text-slate-400 block font-bold uppercase">Avg Health Score</span>
+              <span class="text-lg font-extrabold text-slate-800">76.4 <span class="text-xs font-normal text-slate-400">/100</span></span>
+              <span class="text-[10px] text-emerald-600 font-bold block mt-0.5">▲ Trending Higher</span>
+            </div>
+
+            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 text-center">
+              <span class="text-[10px] text-slate-400 block font-bold uppercase">Weekly Gym Volume</span>
+              <span class="text-lg font-extrabold text-orange-600">8,420 kg</span>
+              <span class="text-[10px] text-orange-700 font-semibold block mt-0.5">+620 kg vs last wk</span>
+            </div>
+
+            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 text-center">
+              <span class="text-[10px] text-slate-400 block font-bold uppercase">Avg Sleep</span>
+              <span class="text-lg font-extrabold text-indigo-600">7.3 hrs</span>
+              <span class="text-[10px] text-indigo-700 font-semibold block mt-0.5">Optimal zone</span>
+            </div>
+
+            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 text-center">
+              <span class="text-[10px] text-slate-400 block font-bold uppercase">PRs Hit</span>
+              <span class="text-lg font-extrabold text-purple-700">3 Logged</span>
+              <span class="text-[10px] text-purple-700 font-semibold block mt-0.5">Bench + Squat + Reps</span>
+            </div>
+          </div>
+
+          <!-- 7-Day Interactive Progression Timeline Cards -->
+          <div class="mb-6">
+            <span class="text-xs font-bold text-slate-700 block mb-3">7-Day Progression Timeline (Click any day to inspect):</span>
+            
+            <div class="grid grid-cols-7 gap-2 text-center" id="weekly-days-grid">
+              <!-- Dynamically populated 7 days -->
+            </div>
+          </div>
+
+          <!-- Day Detail Inspector Card -->
+          <div id="day-detail-box" class="p-5 rounded-2xl bg-slate-50 border border-slate-200 text-xs">
+            <!-- Dynamically populated when a day is clicked -->
+          </div>
+
+        </section>
+
+      </div>
+
+
+      <!-- ========================================== -->
+      <!-- AI HEALTH ENGINE BRAIN (Shared Companion)  -->
+      <!-- ========================================== -->
+      <section class="mt-8 bg-white rounded-2xl p-6 border border-purple-200 shadow-sm">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-100 gap-2 mb-4">
+          <div class="flex items-center gap-2.5">
+            <span class="w-8 h-8 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center font-bold text-base">🧠</span>
+            <div>
+              <h3 class="font-bold text-slate-900 text-base">AI Health Coach Brain</h3>
+              <p class="text-xs text-slate-500">Context-aware advice for nutrition balancing, late shifts & progressive overload</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-[11px] bg-slate-100 text-slate-600 px-2.5 py-1 rounded-lg font-medium border border-slate-200">
+              ⚡ Open-Source Ready (Ollama / Gemini Free)
+            </span>
+          </div>
+        </div>
+
+        <!-- AI Quick Prompt Buttons -->
+        <div class="mb-3">
+          <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1.5">Try a smart prompt:</span>
+          <div class="flex flex-wrap gap-2">
+            <button type="button" class="ai-prompt-btn text-xs bg-purple-50 hover:bg-purple-100 text-purple-800 border border-purple-200 px-3 py-1.5 rounded-xl font-medium transition text-left">
+              🍲 Had a carb-heavy dinner with family. How do I balance my macros?
+            </button>
+            <button type="button" class="ai-prompt-btn text-xs bg-purple-50 hover:bg-purple-100 text-purple-800 border border-purple-200 px-3 py-1.5 rounded-xl font-medium transition text-left">
+              ⏰ Work shift ends late at night. What is a sleep-safe high-protein snack?
+            </button>
+            <button type="button" class="ai-prompt-btn text-xs bg-purple-50 hover:bg-purple-100 text-purple-800 border border-purple-200 px-3 py-1.5 rounded-xl font-medium transition text-left">
+              🏋️ Push workout today. How to progressively overload bench press?
+            </button>
+          </div>
+        </div>
+
+        <!-- AI Query Input Box -->
+        <div class="flex gap-2 mb-4">
+          <input type="text" id="ai-user-query" placeholder="Ask your AI health coach anything about food, timing, or gym..." class="flex-1 text-xs p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 font-medium text-slate-800">
+          <button type="button" id="ask-ai-btn" class="px-5 py-2.5 bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold rounded-xl transition shadow-sm flex items-center gap-1.5">
+            <span>Ask AI</span>
+            <span>✨</span>
+          </button>
+        </div>
+
+        <!-- AI Response Box -->
+        <div id="ai-response-box" class="p-4 bg-slate-50 rounded-xl border border-slate-200 text-xs text-slate-800 leading-relaxed hidden">
+          <div class="flex items-center justify-between mb-2 pb-2 border-b border-slate-200/60">
+            <span class="font-bold text-purple-900 flex items-center gap-1.5">
+              <span>🤖</span>
+              <span>AI Health Engine Response</span>
+            </span>
+            <span class="text-[10px] text-slate-400" id="ai-timestamp">Just now</span>
+          </div>
+          <div id="ai-response-content" class="space-y-2">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+      </section>
+
+      <!-- Bottom Beginner Guide & Architecture Callout -->
+      <footer class="mt-12 pt-6 border-t border-slate-200 text-center text-xs text-slate-500">
+        <p class="font-medium text-slate-700">HealthEngine Prototype v1.7 • Push, Pull, Legs, Core & Cardio</p>
+        <p class="mt-1">Full Data Backup & Restore • Recovery Recommender Active</p>
+      </footer>
+
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- 3. PROFILE SETTINGS & DATA BACKUP MODAL    -->
+  <!-- ========================================== -->
+  <div id="profile-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-slate-200 overflow-hidden max-h-[90vh] flex flex-col">
+      <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+        <div>
+          <h3 class="font-bold text-slate-900 text-sm">User Profile & Data Management</h3>
+          <p class="text-xs text-slate-500">Review baseline metrics or export your local data</p>
+        </div>
+        <button type="button" id="close-profile-modal-btn" class="w-8 h-8 rounded-lg hover:bg-slate-200 flex items-center justify-center text-slate-500 text-base">✕</button>
+      </div>
+
+      <div class="p-5 overflow-y-auto space-y-5">
+        
+        <!-- Profile Form -->
+        <form id="edit-profile-form" class="space-y-4">
+          <div>
+            <label for="edit-name" class="block text-xs font-bold text-slate-700 mb-1">Full Name</label>
+            <input type="text" id="edit-name" class="w-full text-xs p-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium">
+          </div>
+
+          <div class="grid grid-cols-3 gap-2">
+            <div>
+              <label for="edit-age" class="block text-[11px] font-semibold text-slate-600 mb-1">Age</label>
+              <input type="number" id="edit-age" class="w-full text-xs p-2 border border-slate-200 rounded-lg focus:outline-none font-medium">
+            </div>
+            <div>
+              <label for="edit-height" class="block text-[11px] font-semibold text-slate-600 mb-1">Height (cm)</label>
+              <input type="number" id="edit-height" class="w-full text-xs p-2 border border-slate-200 rounded-lg focus:outline-none font-medium">
+            </div>
+            <div>
+              <label for="edit-weight" class="block text-[11px] font-semibold text-slate-600 mb-1">Weight (kg)</label>
+              <input type="number" id="edit-weight" step="0.5" class="w-full text-xs p-2 border border-slate-200 rounded-lg focus:outline-none font-medium">
+            </div>
+          </div>
+
+          <div>
+            <label for="edit-goal" class="block text-[11px] font-semibold text-slate-600 mb-1">Primary Fitness Goal</label>
+            <select id="edit-goal" class="w-full text-xs p-2 border border-slate-200 rounded-lg focus:outline-none font-medium text-slate-700 bg-slate-50">
+              <option value="muscle_gain">Athletic Muscle Gain / Hypertrophy (~1.4g/kg)</option>
+              <option value="recomp">Body Recomposition & Fat Loss (~1.6g/kg)</option>
+              <option value="maintenance">Cardio Fitness & Health (~1.0g/kg)</option>
+            </select>
+          </div>
+
+          <!-- AI Protein Suggestion in Modal -->
+          <div class="p-2.5 bg-purple-50 rounded-xl border border-purple-200/70 flex items-center justify-between text-xs">
+            <div>
+              <span class="font-bold text-purple-900 block">AI Recommended Target:</span>
+              <span class="text-[10px] text-purple-700" id="edit-ai-calc-desc">Based on weight & goal</span>
+            </div>
+            <button type="button" id="apply-ai-target-btn" class="px-2.5 py-1 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-[11px] font-bold shadow-sm transition">
+              Apply <span id="edit-ai-target-val">94g</span>
+            </button>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label for="edit-protein-target" class="block text-[11px] font-semibold text-slate-600 mb-1">Protein Goal (g)</label>
+              <input type="number" id="edit-protein-target" class="w-full text-xs p-2 border border-slate-200 rounded-lg focus:outline-none font-medium">
+            </div>
+            <div>
+              <label for="edit-diet" class="block text-[11px] font-semibold text-slate-600 mb-1">Diet Style</label>
+              <select id="edit-diet" class="w-full text-xs p-2 border border-slate-200 rounded-lg focus:outline-none font-medium text-slate-700 bg-slate-50">
+                <option value="Plant-Based / Vegetarian">Plant-Based / Vegetarian</option>
+                <option value="Vegan">Vegan (100% Plant-Based)</option>
+                <option value="Pescatarian">Pescatarian</option>
+                <option value="Balanced Omnivore">Balanced Omnivore</option>
+                <option value="High-Protein / Keto">High-Protein / Low-Carb</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label for="edit-routine" class="block text-[11px] font-semibold text-slate-600 mb-1">Routine / Shift</label>
+            <input type="text" id="edit-routine" class="w-full text-xs p-2.5 border border-slate-200 rounded-lg focus:outline-none font-medium">
+          </div>
+
+          <div class="pt-2 flex justify-end gap-2 border-b border-slate-100 pb-4">
+            <button type="button" id="cancel-profile-btn" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition">Cancel</button>
+            <button type="submit" class="px-4 py-2 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-sm transition">Save Changes</button>
+          </div>
+        </form>
+
+        <!-- NEW: LOCAL DATA BACKUP & RESTORE SECTION -->
+        <div class="pt-2">
+          <span class="text-xs font-extrabold text-slate-800 block mb-1">💾 Data Backup & Restore (JSON)</span>
+          <p class="text-[11px] text-slate-500 mb-3">Download your full workouts, nutrition logs, and strength progression data as a portable file.</p>
+          
+          <div class="grid grid-cols-2 gap-2">
+            <button type="button" id="export-backup-btn" class="py-2.5 px-3 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl transition shadow-sm flex items-center justify-center gap-1.5">
+              <span>⬇️ Export JSON</span>
+            </button>
+
+            <label class="py-2.5 px-3 border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs font-bold rounded-xl transition cursor-pointer flex items-center justify-center gap-1.5 text-center">
+              <span>⬆️ Import JSON</span>
+              <input type="file" id="import-backup-input" accept=".json" class="hidden">
+            </label>
+          </div>
+
+          <div id="backup-status-msg" class="text-[11px] font-medium text-emerald-700 mt-2 hidden text-center"></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ========================================== -->
+  <!-- 4. JAVASCRIPT LOGIC                        -->
+  <!-- ========================================== -->
+  <script>
+    // Universal Global Profile Defaults
+    const demoProfile = {
+      name: "Alex",
+      email: "alex@example.com",
+      age: 32,
+      height: 185,
+      weight: 67,
+      goal: "muscle_gain",
+      diet: "Plant-Based / Vegetarian",
+      proteinTarget: 94,
+      routine: "Late Shift (1:00 PM – 10:00 PM)"
+    };
+
+    let currentUser = null;
+    let strengthChartInstance = null;
+
+    // Multi-Week Strength Curves Dataset (Estimated 1RM & Top Working Weight)
+    const strengthHistoryData = {
+      bench: {
+        title: "Barbell Bench Press",
+        labels: ["W1 (Oct 4)", "W2 (Oct 11)", "W3 (Oct 18)", "W4 (Oct 25)", "W5 (Oct 28)", "W6 (Today)"],
+        est1RM: [54.0, 57.0, 60.2, 61.7, 63.3, 66.7],
+        workingWeight: [45.0, 47.5, 47.5, 50.0, 50.0, 52.5],
+        reps: [6, 6, 8, 7, 8, 10],
+        gainVal: "+12.7 kg",
+        gainPct: "+23.5% strength",
+        rateVal: "+2.1 kg/wk",
+        story: "Your bench press exhibits clear non-linear progressive overload. After consolidating volume at 47.5kg in Weeks 2–3, you broke the 50kg barrier and hit today's 10-rep milestone, lifting your estimated 1RM to a new peak of 66.7 kg."
+      },
+      squat: {
+        title: "Barbell Back Squat",
+        labels: ["W1 (Oct 4)", "W2 (Oct 11)", "W3 (Oct 18)", "W4 (Oct 25)", "W5 (Oct 28)", "W6 (Today)"],
+        est1RM: [68.0, 72.5, 75.0, 78.5, 82.0, 85.0],
+        workingWeight: [55.0, 60.0, 60.0, 62.5, 65.0, 67.5],
+        reps: [7, 6, 8, 8, 8, 8],
+        gainVal: "+17.0 kg",
+        gainPct: "+25.0% strength",
+        rateVal: "+2.8 kg/wk",
+        story: "Consistent leg drive and depth control. Back squats have progressed steadily by adding 2.5kg micro-increments every 10 days, maintaining clean quad and glute recruitment."
+      },
+      rdl: {
+        title: "Romanian Deadlift (RDL)",
+        labels: ["W1 (Oct 4)", "W2 (Oct 11)", "W3 (Oct 18)", "W4 (Oct 25)", "W5 (Oct 28)", "W6 (Today)"],
+        est1RM: [62.0, 66.0, 70.0, 72.5, 76.0, 79.5],
+        workingWeight: [50.0, 52.5, 55.0, 57.5, 60.0, 62.5],
+        reps: [8, 8, 8, 8, 8, 8],
+        gainVal: "+17.5 kg",
+        gainPct: "+28.2% strength",
+        rateVal: "+2.9 kg/wk",
+        story: "Posterior chain hypertrophy is outstanding. Solid hinge mechanics with zero lumbar flexion, ensuring healthy hamstring stretch and spinal resilience."
+      },
+      lat: {
+        title: "Lat Pulldown",
+        labels: ["W1 (Oct 4)", "W2 (Oct 11)", "W3 (Oct 18)", "W4 (Oct 25)", "W5 (Oct 28)", "W6 (Today)"],
+        est1RM: [48.0, 51.0, 54.0, 56.5, 58.0, 60.0],
+        workingWeight: [40.0, 42.5, 45.0, 45.0, 47.5, 50.0],
+        reps: [6, 6, 6, 8, 7, 8],
+        gainVal: "+12.0 kg",
+        gainPct: "+25.0% strength",
+        rateVal: "+2.0 kg/wk",
+        story: "Vertical pulling strength continues upward. Increased mind-muscle connection on the lats and lower traps without excessive body swing."
+      },
+      ohp: {
+        title: "Overhead Shoulder Press",
+        labels: ["W1 (Oct 4)", "W2 (Oct 11)", "W3 (Oct 18)", "W4 (Oct 25)", "W5 (Oct 28)", "W6 (Today)"],
+        est1RM: [36.0, 38.5, 40.0, 42.0, 43.5, 45.5],
+        workingWeight: [30.0, 32.5, 32.5, 35.0, 35.0, 37.5],
+        reps: [6, 6, 7, 6, 7, 7],
+        gainVal: "+9.5 kg",
+        gainPct: "+26.4% strength",
+        rateVal: "+1.6 kg/wk",
+        story: "Overhead pressing responds well to micro-loading. Strict lockout form is protecting the rotator cuff while building front delt density."
+      }
+    };
+
+    // 5-Split Exercise Catalog: Push, Pull, Legs, Core, Cardio
+    const exerciseCatalog = {
+      Push: [
+        { name: "Barbell Bench Press", prevWeight: 50, prevReps: 8 },
+        { name: "Incline Dumbbell Press", prevWeight: 18, prevReps: 10 },
+        { name: "Overhead Shoulder Press", prevWeight: 35, prevReps: 8 },
+        { name: "Cable Tricep Pushdown", prevWeight: 22.5, prevReps: 12 }
+      ],
+      Pull: [
+        { name: "Lat Pulldown", prevWeight: 45, prevReps: 10 },
+        { name: "Barbell Bent-Over Row", prevWeight: 45, prevReps: 8 },
+        { name: "Dumbbell Bicep Curl", prevWeight: 12.5, prevReps: 10 },
+        { name: "Cable Face Pulls", prevWeight: 17.5, prevReps: 15 }
+      ],
+      Legs: [
+        { name: "Barbell Back Squat", prevWeight: 60, prevReps: 8 },
+        { name: "Romanian Deadlift (RDL)", prevWeight: 55, prevReps: 10 },
+        { name: "Leg Press", prevWeight: 120, prevReps: 12 },
+        { name: "Standing Calf Raises", prevWeight: 40, prevReps: 15 }
+      ],
+      Core: [
+        { name: "Hanging Knee / Leg Raises", prevWeight: 0, prevReps: 12 },
+        { name: "Ab Wheel Rollouts", prevWeight: 0, prevReps: 10 },
+        { name: "Weighted Plank Hold", prevWeight: 10, prevReps: 45 },
+        { name: "Cable Woodchoppers", prevWeight: 15, prevReps: 12 }
+      ],
+      Cardio: [
+        { name: "Zone 2 Incline Treadmill Walk", prevWeight: 0, prevReps: 25 },
+        { name: "HIIT Sprint Intervals", prevWeight: 0, prevReps: 15 },
+        { name: "Rowing Machine Intervals", prevWeight: 0, prevReps: 20 },
+        { name: "Stationary Cycling", prevWeight: 0, prevReps: 30 }
+      ]
+    };
+
+    // 7-Day Historical Progression Dataset
+    const weeklyHistoryData = [
+      { day: "Mon", date: "Oct 26", score: 72, split: "Push", workoutDone: true, volume: 1320, protein: 78, sleep: 6.5, pr: false, status: "Baseline" },
+      { day: "Tue", date: "Oct 27", score: 75, split: "Pull", workoutDone: true, volume: 1400, protein: 84, sleep: 7.0, pr: false, status: "Progressing (+3)" },
+      { day: "Wed", date: "Oct 28", score: 74, split: "Rest", workoutDone: false, volume: 0, protein: 75, sleep: 8.0, pr: false, status: "Active Recovery (-1)" },
+      { day: "Thu", date: "Oct 29", score: 80, split: "Legs", workoutDone: true, volume: 2150, protein: 92, sleep: 7.5, pr: true, prDetails: "Squat 65kg PR", status: "Overload PR (+6)" },
+      { day: "Fri", date: "Oct 30", score: 76, split: "Core", workoutDone: true, volume: 850, protein: 80, sleep: 7.0, pr: false, status: "Steady (-4)" },
+      { day: "Sat", date: "Oct 31", score: 74, split: "Cardio", workoutDone: true, volume: 0, protein: 70, sleep: 7.5, pr: false, status: "Rest (-2)" },
+      { day: "Sun", date: "Today", score: 82, split: "Push", workoutDone: true, volume: 1480, protein: 68, sleep: 7.5, pr: true, prDetails: "Bench 50kg x 10 reps", status: "Healthier Today (+8)" }
+    ];
+
+    let selectedHistoryDayIndex = 6;
+
+    const defaultState = {
+      activeTab: 'workout',
+      workoutDone: true,
+      workoutSplit: 'Push',
+      selectedExercise: 'Barbell Bench Press',
+      sets: [
+        { id: 1, setNum: 1, weight: 50, reps: 8, prevWeight: 50, prevReps: 8 },
+        { id: 2, setNum: 2, weight: 50, reps: 8, prevWeight: 50, prevReps: 8 },
+        { id: 3, setNum: 3, weight: 50, reps: 10, prevWeight: 50, prevReps: 8 }
+      ],
+      sleepHours: 7.5,
+      sleepFeeling: 2,
+      stressLevel: 'Low',
+      meditationDone: true,
+      sorenessLevel: 'None',
+      habitACV: true,
+      habitSeeds: true,
+      habitFasting: true,
+      yesterdayScore: 74,
+      meals: [
+        { id: 1, text: "1:00 PM: Brown rice with lentil stew, steamed green beans, and 1 cup greek yogurt", calories: 620, protein: 24, fiber: 9 },
+        { id: 2, text: "4:30 PM: Black coffee, handful roasted peanuts, pumpkin & chia seeds", calories: 230, protein: 12, fiber: 4 },
+        { id: 3, text: "9:00 PM: Whole grain flatbread with baked spiced tofu and roasted chickpeas", calories: 660, protein: 32, fiber: 11 }
+      ]
+    };
+
+    let appState = Object.assign({}, defaultState);
+
+    // Global / Universal Natural Language Food Database
+    const foodDatabase = [
+      { keywords: ['rice', 'brown rice', 'quinoa', 'grain'], cal: 210, prot: 5, fib: 2 },
+      { keywords: ['lentil', 'lentils', 'dal', 'beans', 'chickpea', 'chickpeas', 'hummus'], cal: 170, prot: 11, fib: 7 },
+      { keywords: ['yogurt', 'curd', 'greek yogurt', 'dahi', 'cottage cheese'], cal: 120, prot: 10, fib: 0 },
+      { keywords: ['tofu', 'paneer', 'tempeh', 'soy'], cal: 220, prot: 18, fib: 1 },
+      { keywords: ['broccoli', 'salad', 'greens', 'spinach', 'vegetables', 'veggies', 'poriyal', 'beans'], cal: 70, prot: 3, fib: 4 },
+      { keywords: ['oatmeal', 'oats', 'porridge'], cal: 160, prot: 6, fib: 4 },
+      { keywords: ['toast', 'bread', 'roti', 'tortilla', 'pita', 'dosa'], cal: 120, prot: 4, fib: 2 },
+      { keywords: ['peanut', 'peanuts', 'almond', 'almonds', 'walnut', 'nuts'], cal: 170, prot: 8, fib: 2 },
+      { keywords: ['seed', 'seeds', 'chia', 'flax', 'pumpkin seeds'], cal: 90, prot: 4, fib: 4 },
+      { keywords: ['smoothie', 'protein shake', 'shake'], cal: 250, prot: 24, fib: 3 },
+      { keywords: ['avocado', 'olive'], cal: 140, prot: 2, fib: 5 },
+      { keywords: ['coffee', 'tea'], cal: 30, prot: 1, fib: 0 }
+    ];
+
+    function calculateAIProtein(weight, goal) {
+      let multiplier = 1.4;
+      let desc = "1.4g/kg for athletic muscle gain & hypertrophy";
+      if (goal === 'recomp') {
+        multiplier = 1.6;
+        desc = "1.6g/kg to preserve muscle while burning fat";
+      } else if (goal === 'maintenance') {
+        multiplier = 1.0;
+        desc = "1.0g/kg for general metabolic health and maintenance";
+      }
+      const target = Math.round(weight * multiplier);
+      return { target, multiplier, desc };
+    }
+
+    function estimateOneRepMax(weight, reps) {
+      if (reps === 1) return weight;
+      return Math.round((weight * (1 + reps / 30)) * 10) / 10;
+    }
+
+    function init() {
+      setupAuthListeners();
+      setupTabs();
+      setupTrackerListeners();
+      setupAIBrain();
+      setupGymTracker();
+      setupWeeklyTrends();
+      setupBackupRestore();
+
+      try {
+        const savedUser = localStorage.getItem('he_user');
+        if (savedUser) {
+          currentUser = JSON.parse(savedUser);
+          showAppView();
+          return;
+        }
+      } catch (e) {}
+
+      showAuthView();
+    }
+
+    // ==========================================
+    // 4-Tab View Navigation Logic
+    // ==========================================
+    function setupTabs() {
+      const tabWorkout = document.getElementById('nav-tab-workout');
+      const tabFood = document.getElementById('nav-tab-food');
+      const tabWellness = document.getElementById('nav-tab-wellness');
+      const tabTrends = document.getElementById('nav-tab-trends');
+      const jumpToChartBtn = document.getElementById('jump-to-chart-btn');
+
+      const viewWorkout = document.getElementById('view-tab-workout');
+      const viewFood = document.getElementById('view-tab-food');
+      const viewWellness = document.getElementById('view-tab-wellness');
+      const viewTrends = document.getElementById('view-tab-trends');
+
+      function switchTab(target) {
+        appState.activeTab = target;
+
+        tabWorkout.className = 'py-3 px-2 rounded-xl text-xs font-extrabold transition flex items-center justify-center gap-1.5 text-slate-600 hover:text-slate-900';
+        tabFood.className = 'py-3 px-2 rounded-xl text-xs font-extrabold transition flex items-center justify-center gap-1.5 text-slate-600 hover:text-slate-900';
+        tabWellness.className = 'py-3 px-2 rounded-xl text-xs font-extrabold transition flex items-center justify-center gap-1.5 text-slate-600 hover:text-slate-900';
+        tabTrends.className = 'py-3 px-2 rounded-xl text-xs font-extrabold transition flex items-center justify-center gap-1.5 text-slate-600 hover:text-slate-900';
+
+        viewWorkout.classList.add('hidden');
+        viewFood.classList.add('hidden');
+        viewWellness.classList.add('hidden');
+        viewTrends.classList.add('hidden');
+
+        if (target === 'workout') {
+          tabWorkout.className = 'py-3 px-2 rounded-xl text-xs font-extrabold transition flex items-center justify-center gap-1.5 bg-white text-orange-600 shadow-sm';
+          viewWorkout.classList.remove('hidden');
+        } else if (target === 'food') {
+          tabFood.className = 'py-3 px-2 rounded-xl text-xs font-extrabold transition flex items-center justify-center gap-1.5 bg-white text-emerald-600 shadow-sm';
+          viewFood.classList.remove('hidden');
+        } else if (target === 'wellness') {
+          tabWellness.className = 'py-3 px-2 rounded-xl text-xs font-extrabold transition flex items-center justify-center gap-1.5 bg-white text-indigo-600 shadow-sm';
+          viewWellness.classList.remove('hidden');
+          updateRecoveryRecommender();
+        } else if (target === 'trends') {
+          tabTrends.className = 'py-3 px-2 rounded-xl text-xs font-extrabold transition flex items-center justify-center gap-1.5 bg-white text-purple-700 shadow-sm';
+          viewTrends.classList.remove('hidden');
+          renderWeeklyTrends();
+          renderStrengthChart();
+        }
+      }
+
+      tabWorkout.addEventListener('click', () => switchTab('workout'));
+      tabFood.addEventListener('click', () => switchTab('food'));
+      tabWellness.addEventListener('click', () => switchTab('wellness'));
+      tabTrends.addEventListener('click', () => switchTab('trends'));
+      
+      if (jumpToChartBtn) {
+        jumpToChartBtn.addEventListener('click', () => switchTab('trends'));
+      }
+    }
+
+    // ==========================================
+    // AI Recovery & Rest Day Recommender
+    // ==========================================
+    function updateRecoveryRecommender() {
+      const badge = document.getElementById('readiness-score-badge');
+      const title = document.getElementById('recovery-recommendation-title');
+      const text = document.getElementById('recovery-recommendation-text');
+      if (!badge || !title || !text) return;
+
+      let readiness = 85;
+
+      // Deduct for sleep deficit
+      if (appState.sleepHours < 6) readiness -= 25;
+      else if (appState.sleepHours < 7) readiness -= 10;
+
+      // Deduct for stress
+      if (appState.stressLevel === 'High') readiness -= 15;
+      else if (appState.stressLevel === 'Moderate') readiness -= 5;
+
+      // Deduct for soreness / tweak
+      if (appState.sorenessLevel === 'Joint') readiness -= 35;
+      else if (appState.sorenessLevel === 'Mild') readiness -= 10;
+
+      // Check workout history
+      let consecutiveWorkouts = 0;
+      weeklyHistoryData.slice(3, 7).forEach(d => { if (d.workoutDone) consecutiveWorkouts++; });
+      if (consecutiveWorkouts >= 3) readiness -= 15;
+
+      readiness = Math.max(30, Math.min(98, readiness));
+
+      badge.textContent = `Readiness: ${readiness}%`;
+
+      if (readiness >= 75) {
+        badge.className = 'px-3 py-1 bg-emerald-600 text-white rounded-xl text-xs font-bold shadow-sm';
+        title.textContent = 'Tomorrow: Prime for High Intensity Training';
+        title.className = 'font-bold text-xs text-emerald-900';
+        text.textContent = `With ${appState.sleepHours}h of sleep and manageable stress, your CNS and muscle recovery are in the green zone. Proceed with progressive overload on your scheduled split.`;
+      } else if (readiness >= 55) {
+        badge.className = 'px-3 py-1 bg-amber-500 text-white rounded-xl text-xs font-bold shadow-sm';
+        title.textContent = 'Tomorrow: Active Recovery or Light Deload Advised';
+        title.className = 'font-bold text-xs text-amber-900';
+        text.textContent = `Cumulative training load and mild fatigue suggest an active deload tomorrow. Consider 20-30 minutes of light cardio, core stability, or mobility work to flush lactic acid without overloading joints.`;
+      } else {
+        badge.className = 'px-3 py-1 bg-red-600 text-white rounded-xl text-xs font-bold shadow-sm';
+        title.textContent = 'Tomorrow: Full Rest Day Strongly Recommended';
+        title.className = 'font-bold text-xs text-red-900';
+        text.textContent = `Your fatigue markers (sleep debt, high stress, or joint tweak) require immediate recovery. Take a full rest day tomorrow, prioritize protein, hydration, and 8+ hours of sleep to prevent injury.`;
+      }
+    }
+
+    // ==========================================
+    // Local Data Backup & Restore (JSON Export / Import)
+    // ==========================================
+    function setupBackupRestore() {
+      const exportBtn = document.getElementById('export-backup-btn');
+      const importInput = document.getElementById('import-backup-input');
+      const statusMsg = document.getElementById('backup-status-msg');
+
+      if (exportBtn) {
+        exportBtn.addEventListener('click', () => {
+          const exportPayload = {
+            exportDate: new Date().toISOString(),
+            user: currentUser,
+            appState: appState,
+            weeklyHistory: weeklyHistoryData,
+            strengthHistory: strengthHistoryData
+          };
+
+          const jsonStr = JSON.stringify(exportPayload, null, 2);
+          const blob = new Blob([jsonStr], { type: 'application/json' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `healthengine_backup_${new Date().toISOString().slice(0, 10)}.json`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+
+          statusMsg.textContent = '✓ Backup downloaded successfully!';
+          statusMsg.classList.remove('hidden');
+          setTimeout(() => statusMsg.classList.add('hidden'), 4000);
+        });
+      }
+
+      if (importInput) {
+        importInput.addEventListener('change', (e) => {
+          const file = e.target.files[0];
+          if (!file) return;
+
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            try {
+              const data = JSON.parse(event.target.result);
+              if (data.user) {
+                currentUser = data.user;
+                saveUserSession(currentUser);
+              }
+              if (data.appState) {
+                appState = Object.assign(appState, data.appState);
+              }
+              statusMsg.textContent = '✓ Data restored successfully!';
+              statusMsg.classList.remove('hidden');
+              setTimeout(() => statusMsg.classList.add('hidden'), 4000);
+              showAppView();
+            } catch (err) {
+              statusMsg.textContent = '❌ Failed to parse backup JSON file.';
+              statusMsg.classList.remove('hidden');
+            }
+          };
+          reader.readAsText(file);
+        });
+      }
+    }
+
+    // ==========================================
+    // Weekly History & Trends Module
+    // ==========================================
+    function setupWeeklyTrends() {
+      const exerciseSelect = document.getElementById('strength-chart-exercise');
+      if (exerciseSelect) {
+        exerciseSelect.addEventListener('change', () => {
+          renderStrengthChart();
+        });
+      }
+
+      renderWeeklyTrends();
+      renderStrengthChart();
+    }
+
+    function renderStrengthChart() {
+      const canvas = document.getElementById('strength-chart');
+      if (!canvas || typeof Chart === 'undefined') return;
+
+      const exerciseKey = document.getElementById('strength-chart-exercise').value || 'bench';
+      const dataObj = strengthHistoryData[exerciseKey];
+      if (!dataObj) return;
+
+      const peak1RM = Math.max(...dataObj.est1RM);
+      document.getElementById('chart-best-1rm').textContent = `${peak1RM} kg`;
+      document.getElementById('chart-gain-val').textContent = dataObj.gainVal;
+      document.getElementById('chart-gain-pct').textContent = dataObj.gainPct;
+      document.getElementById('chart-rate-val').textContent = dataObj.rateVal;
+      document.getElementById('strength-story-title').textContent = `${dataObj.title} Strength Progression:`;
+      document.getElementById('strength-story-desc').textContent = dataObj.story;
+
+      if (strengthChartInstance) {
+        strengthChartInstance.destroy();
+      }
+
+      const ctx = canvas.getContext('2d');
+      const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+      gradient.addColorStop(0, 'rgba(234, 88, 12, 0.35)');
+      gradient.addColorStop(1, 'rgba(234, 88, 12, 0.02)');
+
+      strengthChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: dataObj.labels,
+          datasets: [
+            {
+              label: 'Estimated 1RM (kg)',
+              data: dataObj.est1RM,
+              borderColor: '#ea580c',
+              backgroundColor: gradient,
+              borderWidth: 3,
+              fill: true,
+              tension: 0.35,
+              pointBackgroundColor: '#ffffff',
+              pointBorderColor: '#ea580c',
+              pointBorderWidth: 2.5,
+              pointRadius: 5,
+              pointHoverRadius: 7
+            },
+            {
+              label: 'Working Weight (kg)',
+              data: dataObj.workingWeight,
+              borderColor: '#6366f1',
+              borderDash: [5, 5],
+              borderWidth: 2,
+              pointBackgroundColor: '#6366f1',
+              pointRadius: 4,
+              fill: false,
+              tension: 0.2
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'top',
+              labels: {
+                boxWidth: 12,
+                font: { size: 11, family: "'Plus Jakarta Sans', sans-serif", weight: 'bold' },
+                color: '#475569'
+              }
+            },
+            tooltip: {
+              backgroundColor: '#0f172a',
+              titleFont: { size: 12, weight: 'bold' },
+              bodyFont: { size: 11 },
+              padding: 10,
+              cornerRadius: 10,
+              callbacks: {
+                afterBody: function(tooltipItems) {
+                  const idx = tooltipItems[0].dataIndex;
+                  return `Reps Performed: ${dataObj.reps[idx]} reps`;
+                }
+              }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: false,
+              suggestedMin: Math.min(...dataObj.workingWeight) - 5,
+              suggestedMax: Math.max(...dataObj.est1RM) + 5,
+              grid: { color: 'rgba(226, 232, 240, 0.6)' },
+              ticks: {
+                font: { size: 10, family: "'Plus Jakarta Sans', sans-serif" },
+                color: '#64748b',
+                callback: function(value) { return value + ' kg'; }
+              }
+            },
+            x: {
+              grid: { display: false },
+              ticks: {
+                font: { size: 10, family: "'Plus Jakarta Sans', sans-serif", weight: '600' },
+                color: '#64748b'
+              }
+            }
+          }
+        }
+      });
+    }
+
+    function renderWeeklyTrends() {
+      const container = document.getElementById('weekly-days-grid');
+      if (!container) return;
+      container.innerHTML = '';
+
+      weeklyHistoryData.forEach((d, idx) => {
+        const isSelected = (idx === selectedHistoryDayIndex);
+        const card = document.createElement('div');
+        
+        let borderClass = isSelected ? 'border-2 border-purple-600 bg-purple-50/50 shadow-md ring-2 ring-purple-100' : 'border border-slate-200 bg-white hover:border-slate-300';
+        let deltaColor = d.score >= 75 ? 'text-emerald-700' : 'text-slate-600';
+
+        card.className = `p-2.5 rounded-xl transition cursor-pointer flex flex-col justify-between ${borderClass}`;
+        card.innerHTML = `
+          <div>
+            <span class="text-[10px] font-bold uppercase text-slate-400 block">${d.day}</span>
+            <span class="text-[11px] font-semibold text-slate-700 block">${d.date}</span>
+          </div>
+
+          <div class="my-2">
+            <span class="text-base font-black ${deltaColor}">${d.score}</span>
+            <span class="text-[9px] text-slate-400 block font-medium">/100</span>
+          </div>
+
+          <div>
+            <span class="text-[10px] px-1.5 py-0.5 rounded font-bold block truncate ${d.workoutDone ? 'bg-orange-100 text-orange-800' : 'bg-slate-100 text-slate-600'}">
+              ${d.split}
+            </span>
+            ${d.pr ? '<span class="text-[9px] text-purple-700 font-extrabold block mt-0.5">🏆 PR</span>' : ''}
+          </div>
+        `;
+
+        card.addEventListener('click', () => {
+          selectedHistoryDayIndex = idx;
+          renderWeeklyTrends();
+        });
+
+        container.appendChild(card);
+      });
+
+      renderDayDetail();
+    }
+
+    function renderDayDetail() {
+      const detailBox = document.getElementById('day-detail-box');
+      if (!detailBox) return;
+
+      const d = weeklyHistoryData[selectedHistoryDayIndex];
+      const targetProtein = (currentUser && currentUser.proteinTarget) ? currentUser.proteinTarget : 94;
+
+      detailBox.innerHTML = `
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-200/80 gap-2 mb-3">
+          <div>
+            <span class="text-xs uppercase tracking-wider font-bold text-slate-400">${d.day} • ${d.date} Log Inspection</span>
+            <h4 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
+              <span>Score: ${d.score}/100</span>
+              <span class="text-xs px-2 py-0.5 rounded font-bold ${d.score >= 75 ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-700'}">${d.status}</span>
+            </h4>
+          </div>
+          <span class="text-[11px] text-slate-500">Baseline comparison evaluated</span>
+        </div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center mb-3">
+          <div class="p-2.5 bg-white rounded-xl border border-slate-200">
+            <span class="text-[10px] text-slate-400 uppercase font-bold block">Workout</span>
+            <span class="text-xs font-bold text-slate-800">${d.workoutDone ? d.split + ' Split' : 'Rest Day'}</span>
+            <span class="text-[10px] text-orange-600 font-semibold block">${d.volume.toLocaleString()} kg volume</span>
+          </div>
+
+          <div class="p-2.5 bg-white rounded-xl border border-slate-200">
+            <span class="text-[10px] text-slate-400 uppercase font-bold block">Protein</span>
+            <span class="text-xs font-bold text-emerald-700">${d.protein}g</span>
+            <span class="text-[10px] text-slate-400 block">Goal: ${targetProtein}g</span>
+          </div>
+
+          <div class="p-2.5 bg-white rounded-xl border border-slate-200">
+            <span class="text-[10px] text-slate-400 uppercase font-bold block">Sleep</span>
+            <span class="text-xs font-bold text-indigo-700">${d.sleep} Hours</span>
+            <span class="text-[10px] text-slate-400 block">${d.sleep >= 7 ? 'Restorative' : 'Slight deficit'}</span>
+          </div>
+
+          <div class="p-2.5 bg-white rounded-xl border border-slate-200">
+            <span class="text-[10px] text-slate-400 uppercase font-bold block">PR & Overload</span>
+            <span class="text-xs font-bold ${d.pr ? 'text-purple-700' : 'text-slate-600'}">${d.pr ? 'Achieved 🏆' : 'Steady'}</span>
+            <span class="text-[10px] text-slate-500 block truncate">${d.prDetails || 'Maintained load'}</span>
+          </div>
+        </div>
+
+        <p class="text-[11px] text-slate-600 leading-relaxed bg-white p-3 rounded-xl border border-slate-200">
+          <strong>Daily Health Delta Analysis:</strong> ${d.day === 'Sun' ? 'Today reached 82 points due to progressive overload on bench press (+2 reps), 7.5 hours of sleep, and consistent nutrition targets.' : 'On ' + d.day + ', training consistency and sleep duration kept recovery in check relative to weekly volume.'}
+        </p>
+      `;
+    }
+
+    // Auth View Setup
+    function setupAuthListeners() {
+      const tabRegisterBtn = document.getElementById('tab-register-btn');
+      const tabLoginBtn = document.getElementById('tab-login-btn');
+      const registerForm = document.getElementById('register-form');
+      const loginForm = document.getElementById('login-form');
+      const quickDemoBtn = document.getElementById('quick-demo-btn');
+      const signoutBtn = document.getElementById('signout-btn');
+
+      const regWeight = document.getElementById('reg-weight');
+      const regGoal = document.getElementById('reg-goal');
+      const regProteinTarget = document.getElementById('reg-protein-target');
+      const regAISuggestion = document.getElementById('reg-ai-protein-suggestion');
+      const regAIRationale = document.getElementById('reg-ai-protein-rationale');
+
+      function updateRegAIProtein() {
+        const w = parseFloat(regWeight.value) || 67;
+        const g = regGoal.value;
+        const { target, multiplier, desc } = calculateAIProtein(w, g);
+        regAISuggestion.textContent = `${target}g / day`;
+        regAIRationale.textContent = `Calculated as ${multiplier}g/kg for your ${w}kg body weight (${desc}).`;
+        regProteinTarget.value = target;
+      }
+
+      regWeight.addEventListener('input', updateRegAIProtein);
+      regGoal.addEventListener('change', updateRegAIProtein);
+      updateRegAIProtein();
+
+      tabRegisterBtn.addEventListener('click', () => {
+        tabRegisterBtn.className = 'flex-1 py-3 text-center text-emerald-700 border-b-2 border-emerald-600 bg-emerald-50/50 transition font-bold';
+        tabLoginBtn.className = 'flex-1 py-3 text-center text-slate-500 hover:text-slate-800 transition font-bold';
+        registerForm.classList.remove('hidden');
+        loginForm.classList.add('hidden');
+      });
+
+      tabLoginBtn.addEventListener('click', () => {
+        tabLoginBtn.className = 'flex-1 py-3 text-center text-emerald-700 border-b-2 border-emerald-600 bg-emerald-50/50 transition font-bold';
+        tabRegisterBtn.className = 'flex-1 py-3 text-center text-slate-500 hover:text-slate-800 transition font-bold';
+        loginForm.classList.remove('hidden');
+        registerForm.classList.add('hidden');
+      });
+
+      registerForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const name = document.getElementById('reg-name').value.trim();
+        const email = document.getElementById('reg-email').value.trim();
+        const age = parseInt(document.getElementById('reg-age').value, 10) || 30;
+        const height = parseInt(document.getElementById('reg-height').value, 10) || 180;
+        const weight = parseFloat(document.getElementById('reg-weight').value) || 65;
+        const goal = document.getElementById('reg-goal').value;
+        const diet = document.getElementById('reg-diet').value;
+        const proteinTarget = parseInt(document.getElementById('reg-protein-target').value, 10) || 94;
+        const routine = document.getElementById('reg-routine').value;
+
+        if (!name || !email) {
+          showAuthError('reg-error-msg', 'Please provide your name and email.');
+          return;
+        }
+
+        currentUser = { name, email, age, height, weight, goal, diet, proteinTarget, routine };
+        saveUserSession(currentUser);
+        showAppView();
+      });
+
+      loginForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const email = document.getElementById('login-email').value.trim();
+        if (!email) {
+          showAuthError('login-error-msg', 'Please enter your registered email.');
+          return;
+        }
+
+        let userToLoad = currentUser;
+        try {
+          const stored = localStorage.getItem('he_user');
+          if (stored) userToLoad = JSON.parse(stored);
+        } catch (err) {}
+
+        if (!userToLoad || userToLoad.email !== email) {
+          userToLoad = Object.assign({}, demoProfile, { email: email, name: email.split('@')[0] });
+        }
+
+        currentUser = userToLoad;
+        saveUserSession(currentUser);
+        showAppView();
+      });
+
+      quickDemoBtn.addEventListener('click', () => {
+        currentUser = Object.assign({}, demoProfile);
+        saveUserSession(currentUser);
+        showAppView();
+      });
+
+      signoutBtn.addEventListener('click', () => {
+        currentUser = null;
+        try { localStorage.removeItem('he_user'); } catch (e) {}
+        showAuthView();
+      });
+    }
+
+    function showAuthError(id, msg) {
+      const el = document.getElementById(id);
+      el.textContent = msg;
+      el.classList.remove('hidden');
+      setTimeout(() => el.classList.add('hidden'), 4000);
+    }
+
+    function saveUserSession(user) {
+      try {
+        localStorage.setItem('he_user', JSON.stringify(user));
+      } catch (e) {}
+    }
+
+    function showAuthView() {
+      document.getElementById('auth-view').classList.remove('hidden');
+      document.getElementById('app-view').classList.add('hidden');
+    }
+
+    function showAppView() {
+      document.getElementById('auth-view').classList.add('hidden');
+      document.getElementById('app-view').classList.remove('hidden');
+
+      if (currentUser) {
+        document.getElementById('header-user-name').textContent = currentUser.name;
+        document.getElementById('header-user-meta').textContent = `${currentUser.weight} kg • ${currentUser.proteinTarget}g target`;
+        document.getElementById('user-avatar-initial').textContent = currentUser.name.charAt(0).toUpperCase();
+        document.getElementById('protein-target-badge').textContent = `Target: ${currentUser.proteinTarget}g`;
+      }
+
+      const now = new Date();
+      const options = { weekday: 'short', month: 'short', day: 'numeric' };
+      document.getElementById('current-date-badge').textContent = now.toLocaleDateString('en-US', options);
+
+      renderExerciseOptions();
+      renderSets();
+      renderMeals();
+      renderWeeklyTrends();
+      updateRecoveryRecommender();
+      recalculateScore();
+    }
+
+    // Setup Gym & Progressive Overload Tracker (5 Splits)
+    function setupGymTracker() {
+      const splitButtons = document.querySelectorAll('.split-tab-btn');
+      const toggleWorkoutDoneBtn = document.getElementById('toggle-workout-done-btn');
+      const exerciseSelect = document.getElementById('exercise-select');
+      const addSetForm = document.getElementById('add-set-form');
+      const quickOverloadBtn = document.getElementById('quick-overload-pr-btn');
+
+      splitButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          appState.workoutSplit = btn.dataset.split;
+          splitButtons.forEach(b => {
+            b.className = 'split-tab-btn px-2.5 py-1 rounded-md text-xs font-bold text-slate-600 hover:text-slate-900 transition';
+          });
+          btn.className = 'split-tab-btn px-2.5 py-1 rounded-md text-xs font-bold bg-white text-orange-600 shadow-sm transition';
+          renderExerciseOptions();
+        });
+      });
+
+      toggleWorkoutDoneBtn.addEventListener('click', () => {
+        appState.workoutDone = !appState.workoutDone;
+        if (appState.workoutDone) {
+          toggleWorkoutDoneBtn.textContent = '✓ Workout Active';
+          toggleWorkoutDoneBtn.className = 'px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-600 text-white shadow-sm transition';
+          document.getElementById('workout-content-area').classList.remove('opacity-50');
+        } else {
+          toggleWorkoutDoneBtn.textContent = 'Rest Day (Off)';
+          toggleWorkoutDoneBtn.className = 'px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-700 text-white shadow-sm transition';
+          document.getElementById('workout-content-area').classList.add('opacity-50');
+        }
+        recalculateScore();
+        updateRecoveryRecommender();
+      });
+
+      exerciseSelect.addEventListener('change', (e) => {
+        appState.selectedExercise = e.target.value;
+        updateExerciseHeader();
+      });
+
+      addSetForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const weight = parseFloat(document.getElementById('input-weight').value) || 0;
+        const reps = parseInt(document.getElementById('input-reps').value, 10) || 8;
+        
+        const catalogList = exerciseCatalog[appState.workoutSplit] || [];
+        const found = catalogList.find(x => x.name === appState.selectedExercise);
+        const prevWeight = found ? found.prevWeight : 0;
+        const prevReps = found ? found.prevReps : 8;
+
+        appState.sets.push({
+          id: Date.now(),
+          setNum: appState.sets.length + 1,
+          weight,
+          reps,
+          prevWeight,
+          prevReps
+        });
+
+        // Update chart dataset with today's newly calculated 1RM if Bench
+        if (appState.selectedExercise === 'Barbell Bench Press') {
+          const new1RM = estimateOneRepMax(weight, reps);
+          if (new1RM > strengthHistoryData.bench.est1RM[5]) {
+            strengthHistoryData.bench.est1RM[5] = new1RM;
+            strengthHistoryData.bench.workingWeight[5] = weight;
+            strengthHistoryData.bench.reps[5] = reps;
+            renderStrengthChart();
+          }
+        }
+
+        renderSets();
+        recalculateScore();
+        updateRecoveryRecommender();
+      });
+
+      quickOverloadBtn.addEventListener('click', () => {
+        appState.workoutSplit = 'Push';
+        appState.selectedExercise = 'Barbell Bench Press';
+        appState.sets = [
+          { id: 1, setNum: 1, weight: 50, reps: 8, prevWeight: 50, prevReps: 8 },
+          { id: 2, setNum: 2, weight: 50, reps: 8, prevWeight: 50, prevReps: 8 },
+          { id: 3, setNum: 3, weight: 50, reps: 10, prevWeight: 50, prevReps: 8 },
+          { id: 4, setNum: 4, weight: 52.5, reps: 6, prevWeight: 50, prevReps: 8 }
+        ];
+
+        splitButtons.forEach(b => {
+          if (b.dataset.split === 'Push') {
+            b.className = 'split-tab-btn px-2.5 py-1 rounded-md text-xs font-bold bg-white text-orange-600 shadow-sm transition';
+          } else {
+            b.className = 'split-tab-btn px-2.5 py-1 rounded-md text-xs font-bold text-slate-600 hover:text-slate-900 transition';
+          }
+        });
+
+        strengthHistoryData.bench.est1RM[5] = 66.7;
+        strengthHistoryData.bench.workingWeight[5] = 52.5;
+        strengthHistoryData.bench.reps[5] = 10;
+        renderStrengthChart();
+
+        renderExerciseOptions();
+        renderSets();
+        recalculateScore();
+        updateRecoveryRecommender();
+      });
+    }
+
+    function renderExerciseOptions() {
+      const select = document.getElementById('exercise-select');
+      select.innerHTML = '';
+      const list = exerciseCatalog[appState.workoutSplit] || [];
+      
+      list.forEach((item, index) => {
+        const opt = document.createElement('option');
+        opt.value = item.name;
+        opt.textContent = item.name;
+        if (index === 0 && !appState.selectedExercise) appState.selectedExercise = item.name;
+        select.appendChild(opt);
+      });
+
+      if (list.length > 0) {
+        select.value = appState.selectedExercise || list[0].name;
+      }
+      updateExerciseHeader();
+    }
+
+    function updateExerciseHeader() {
+      const list = exerciseCatalog[appState.workoutSplit] || [];
+      const found = list.find(x => x.name === appState.selectedExercise) || list[0];
+      if (!found) return;
+
+      if (appState.workoutSplit === 'Cardio') {
+        document.getElementById('prev-session-badge').textContent = `Last Session: ${found.prevReps} minutes duration`;
+        document.getElementById('ai-overload-target').textContent = `🎯 Aerobic Target: ${found.prevReps + 5} mins OR increase interval pace`;
+      } else if (appState.workoutSplit === 'Core') {
+        document.getElementById('prev-session-badge').textContent = `Last Session: ${found.prevWeight > 0 ? found.prevWeight + 'kg x ' : ''}${found.prevReps} reps/seconds`;
+        document.getElementById('ai-overload-target').textContent = `🎯 Stability Target: +2 reps or +5 sec static hold`;
+      } else {
+        const prev1RM = estimateOneRepMax(found.prevWeight, found.prevReps);
+        document.getElementById('prev-session-badge').textContent = `${found.prevWeight} kg × ${found.prevReps} reps (Est. 1RM: ${prev1RM} kg)`;
+        document.getElementById('ai-overload-target').textContent = `🎯 Target Today: ${found.prevWeight} kg × ${found.prevReps + 1}–${found.prevReps + 2} reps OR ${found.prevWeight + 2.5} kg × ${Math.max(5, found.prevReps - 2)} reps`;
+      }
+    }
+
+    function renderSets() {
+      const tbody = document.getElementById('sets-table-body');
+      tbody.innerHTML = '';
+
+      let totalVol = 0;
+      let best1RM = 0;
+      let hasOverload = false;
+      let overloadMessage = "Keep working your sets to match or exceed baseline.";
+
+      appState.sets.forEach((s, idx) => {
+        const vol = s.weight * s.reps;
+        totalVol += vol;
+        const est1RM = estimateOneRepMax(s.weight, s.reps);
+        if (est1RM > best1RM) best1RM = est1RM;
+
+        let statusBadge = '';
+        if (s.weight > s.prevWeight && s.reps >= s.prevReps - 2) {
+          statusBadge = '<span class="px-2 py-0.5 bg-purple-100 text-purple-800 rounded font-bold text-[10px]">🏆 Weight PR (+' + (s.weight - s.prevWeight) + 'kg)</span>';
+          hasOverload = true;
+          overloadMessage = `Progressive Overload Achieved! Logged ${s.weight}kg for ${s.reps} reps (Weight PR).`;
+        } else if (s.weight === s.prevWeight && s.reps > s.prevReps) {
+          statusBadge = '<span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-bold text-[10px]">🔥 Rep PR (+' + (s.reps - s.prevReps) + ' reps)</span>';
+          hasOverload = true;
+          overloadMessage = `Progressive Overload Achieved! Beat last week by +${s.reps - s.prevReps} reps at ${s.weight}kg.`;
+        } else if (s.weight === s.prevWeight && s.reps === s.prevReps) {
+          statusBadge = '<span class="px-2 py-0.5 bg-slate-100 text-slate-600 rounded font-semibold text-[10px]">= Matched Baseline</span>';
+        } else {
+          statusBadge = '<span class="px-2 py-0.5 bg-amber-50 text-amber-700 rounded font-medium text-[10px]">Sub-maximal</span>';
+        }
+
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-slate-50/80 transition';
+        tr.innerHTML = `
+          <td class="py-2.5 px-2 font-bold text-slate-700">#${idx + 1}</td>
+          <td class="py-2.5 px-2 text-slate-400 font-medium">${s.prevWeight}kg × ${s.prevReps}</td>
+          <td class="py-2.5 px-3 font-extrabold text-slate-900">${s.weight} kg</td>
+          <td class="py-2.5 px-3 font-extrabold text-orange-600">${s.reps}</td>
+          <td class="py-2.5 px-2 font-bold text-slate-600">${est1RM} kg</td>
+          <td class="py-2.5 px-3">${statusBadge}</td>
+          <td class="py-2.5 px-2 text-right">
+            <button type="button" class="text-slate-400 hover:text-red-500 font-bold px-1" title="Remove set">✕</button>
+          </td>
+        `;
+
+        tr.querySelector('button').addEventListener('click', () => {
+          appState.sets = appState.sets.filter(item => item.id !== s.id);
+          renderSets();
+          recalculateScore();
+          updateRecoveryRecommender();
+        });
+
+        tbody.appendChild(tr);
+      });
+
+      document.getElementById('total-session-volume').textContent = `${totalVol.toLocaleString()} kg`;
+      document.getElementById('session-best-1rm').textContent = `${best1RM} kg`;
+      document.getElementById('session-sets-count').textContent = `${appState.sets.length} Sets`;
+      document.getElementById('tab-workout-badge').textContent = `${appState.sets.length} Sets`;
+
+      const summaryBox = document.getElementById('overload-summary-callout');
+      const summaryText = document.getElementById('overload-summary-text');
+      summaryText.textContent = overloadMessage;
+
+      if (hasOverload) {
+        summaryBox.className = 'p-2.5 bg-emerald-50 rounded-lg border border-emerald-200 text-xs text-emerald-800 flex items-center gap-2';
+      } else {
+        summaryBox.className = 'p-2.5 bg-slate-100 rounded-lg border border-slate-200 text-xs text-slate-600 flex items-center gap-2';
+      }
+    }
+
+    // Profile Settings Modal Handlers
+    function setupProfileModal() {
+      const modal = document.getElementById('profile-modal');
+      const openBtn = document.getElementById('user-profile-badge-btn');
+      const closeBtn = document.getElementById('close-profile-modal-btn');
+      const cancelBtn = document.getElementById('cancel-profile-btn');
+      const form = document.getElementById('edit-profile-form');
+
+      const editWeight = document.getElementById('edit-weight');
+      const editGoal = document.getElementById('edit-goal');
+      const editAiTargetVal = document.getElementById('edit-ai-target-val');
+      const editAiCalcDesc = document.getElementById('edit-ai-calc-desc');
+      const applyAiBtn = document.getElementById('apply-ai-target-btn');
+
+      function updateModalAIProtein() {
+        const w = parseFloat(editWeight.value) || 67;
+        const g = editGoal.value;
+        const { target, multiplier } = calculateAIProtein(w, g);
+        editAiTargetVal.textContent = `${target}g`;
+        editAiCalcDesc.textContent = `${multiplier}g/kg x ${w}kg`;
+      }
+
+      editWeight.addEventListener('input', updateModalAIProtein);
+      editGoal.addEventListener('change', updateModalAIProtein);
+
+      applyAiBtn.addEventListener('click', () => {
+        const w = parseFloat(editWeight.value) || 67;
+        const g = editGoal.value;
+        const { target } = calculateAIProtein(w, g);
+        document.getElementById('edit-protein-target').value = target;
+      });
+
+      openBtn.addEventListener('click', () => {
+        if (!currentUser) return;
+        document.getElementById('edit-name').value = currentUser.name || '';
+        document.getElementById('edit-age').value = currentUser.age || 32;
+        document.getElementById('edit-height').value = currentUser.height || 185;
+        document.getElementById('edit-weight').value = currentUser.weight || 67;
+        document.getElementById('edit-goal').value = currentUser.goal || 'muscle_gain';
+        document.getElementById('edit-protein-target').value = currentUser.proteinTarget || 94;
+        document.getElementById('edit-diet').value = currentUser.diet || 'Plant-Based / Vegetarian';
+        document.getElementById('edit-routine').value = currentUser.routine || 'Late Shift (1:00 PM – 10:00 PM)';
+        updateModalAIProtein();
+        modal.classList.remove('hidden');
+      });
+
+      const hideModal = () => modal.classList.add('hidden');
+      closeBtn.addEventListener('click', hideModal);
+      cancelBtn.addEventListener('click', hideModal);
+
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        currentUser.name = document.getElementById('edit-name').value.trim() || currentUser.name;
+        currentUser.age = parseInt(document.getElementById('edit-age').value, 10) || currentUser.age;
+        currentUser.height = parseInt(document.getElementById('edit-height').value, 10) || currentUser.height;
+        currentUser.weight = parseFloat(document.getElementById('edit-weight').value) || currentUser.weight;
+        currentUser.goal = document.getElementById('edit-goal').value;
+        currentUser.proteinTarget = parseInt(document.getElementById('edit-protein-target').value, 10) || currentUser.proteinTarget;
+        currentUser.diet = document.getElementById('edit-diet').value;
+        currentUser.routine = document.getElementById('edit-routine').value;
+
+        saveUserSession(currentUser);
+        hideModal();
+        showAppView();
+      });
+    }
+
+    // AI Health Engine Coach Brain Logic
+    function setupAIBrain() {
+      const askBtn = document.getElementById('ask-ai-btn');
+      const queryInput = document.getElementById('ai-user-query');
+      const responseBox = document.getElementById('ai-response-box');
+      const responseContent = document.getElementById('ai-response-content');
+      const promptButtons = document.querySelectorAll('.ai-prompt-btn');
+
+      promptButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          queryInput.value = btn.textContent.trim().replace(/^[^\w]+/, '');
+          handleAIQuery(queryInput.value);
+        });
+      });
+
+      askBtn.addEventListener('click', () => {
+        const q = queryInput.value.trim();
+        if (!q) return;
+        handleAIQuery(q);
+      });
+
+      queryInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          const q = queryInput.value.trim();
+          if (!q) return;
+          handleAIQuery(q);
+        }
+      });
+    }
+
+    function handleAIQuery(query) {
+      const responseBox = document.getElementById('ai-response-box');
+      const responseContent = document.getElementById('ai-response-content');
+      const qLower = query.toLowerCase();
+
+      responseBox.classList.remove('hidden');
+      responseContent.innerHTML = `<p class="text-slate-400 italic">Thinking and synthesizing your biometric profile...</p>`;
+
+      setTimeout(() => {
+        let answerHtml = '';
+
+        if (qLower.includes('carb') || qLower.includes('family') || qLower.includes('dinner') || qLower.includes('rice') || qLower.includes('pasta')) {
+          answerHtml = `
+            <div class="space-y-2">
+              <p class="font-semibold text-purple-900">🥗 Carb-Heavy Meal Balancing Strategy:</p>
+              <ul class="list-disc pl-4 space-y-1 text-slate-700">
+                <li><strong>Portion Partitioning:</strong> If dinner was high in starchy carbs (rice, pasta, bread, or potatoes), limit the starch to 1 moderate cup.</li>
+                <li><strong>Protein Anchor (+20g to +30g):</strong> Balance the meal with a high-protein side—such as greek yogurt/cottage cheese, pan-seared tofu/tempeh, edamame, or lentil soup.</li>
+                <li><strong>Fiber & Glucose Buffer:</strong> Add a leafy green salad or steamed cruciferous vegetables (broccoli/cauliflower) with olive oil to slow glucose absorption and prevent insulin spikes before sleep.</li>
+              </ul>
+            </div>
+          `;
+        } else if (qLower.includes('shift') || qLower.includes('night') || qLower.includes('snack') || qLower.includes('late')) {
+          answerHtml = `
+            <div class="space-y-2">
+              <p class="font-semibold text-purple-900">⏰ Late Evening Sleep-Safe Nutrition:</p>
+              <ul class="list-disc pl-4 space-y-1 text-slate-700">
+                <li><strong>Avoid Late Glycemic Spikes:</strong> Heavy simple carbs eaten within 2 hours of bedtime cause nighttime glucose swings and reduce deep slow-wave sleep.</li>
+                <li><strong>Recommended Snack:</strong> A bowl of greek yogurt or cottage cheese with a tablespoon of soaked chia or flax seeds, or warm almond milk with cinnamon.</li>
+                <li><strong>Magnesium & Tryptophan:</strong> A handful of pumpkin seeds or walnuts provides natural magnesium, aiding CNS relaxation after late screen time.</li>
+              </ul>
+            </div>
+          `;
+        } else if (qLower.includes('push') || qLower.includes('bench') || qLower.includes('overload') || qLower.includes('gym')) {
+          answerHtml = `
+            <div class="space-y-2">
+              <p class="font-semibold text-purple-900">🏋️ Progressive Overload Recommendation:</p>
+              <ul class="list-disc pl-4 space-y-1 text-slate-700">
+                <li><strong>Target:</strong> Push Split (Chest, Deltoids, Triceps).</li>
+                <li><strong>Overload Rule:</strong> If your previous session was 50kg for 8 reps, don't jump weight immediately. Aim for <strong>50kg x 9 or 10 clean reps</strong> today.</li>
+                <li><strong>Load Progression:</strong> Once you can achieve 3 sets of 10 clean reps at 50kg with good form, increment the bar by +2.5kg to 52.5kg.</li>
+                <li><strong>Rest Timing:</strong> Rest 2 to 3 minutes between heavy compound sets to maximize ATP regeneration.</li>
+              </ul>
+            </div>
+          `;
+        } else {
+          answerHtml = `
+            <div class="space-y-2">
+              <p class="font-semibold text-purple-900">✨ AI Health Engine Synthesis:</p>
+              <p class="text-slate-700">Based on your 67kg baseline and ${currentUser ? currentUser.proteinTarget : 94}g daily target:</p>
+              <ul class="list-disc pl-4 space-y-1 text-slate-700">
+                <li>Break your fasting window with a 30g+ protein anchor (e.g., yogurt bowl, tofu scramble, or lentil bowl) to stimulate muscle protein synthesis.</li>
+                <li>Maintain your daily intake of omega-3 rich seeds (chia, flax, or walnuts) for cardiovascular elasticity and joint lubrication.</li>
+                <li>Continue prioritizing resistance training with progressive overload at least 3-4 days per week.</li>
+              </ul>
+            </div>
+          `;
+        }
+
+        responseContent.innerHTML = answerHtml;
+      }, 350);
+    }
+
+    // Main Tracker Logic & Events
+    function setupTrackerListeners() {
+      setupProfileModal();
+
+      // Sleep Listeners
+      const sleepSlider = document.getElementById('sleep-hours-slider');
+      const sleepText = document.getElementById('sleep-hours-text');
+      sleepSlider.addEventListener('input', (e) => {
+        appState.sleepHours = parseFloat(e.target.value);
+        sleepText.textContent = `${appState.sleepHours} Hours`;
+        document.getElementById('tab-wellness-badge').textContent = `${appState.sleepHours}h`;
+        recalculateScore();
+        updateRecoveryRecommender();
+      });
+
+      const recoveryButtons = document.querySelectorAll('.recovery-btn');
+      recoveryButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          appState.sleepFeeling = parseInt(btn.dataset.val, 10);
+          recoveryButtons.forEach(b => {
+            b.className = 'recovery-btn py-2.5 text-xs font-semibold rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 transition';
+          });
+          btn.className = 'recovery-btn py-2.5 text-xs font-bold rounded-xl border-2 border-indigo-600 bg-indigo-50 text-indigo-900 transition';
+          recalculateScore();
+          updateRecoveryRecommender();
+        });
+      });
+
+      // Stress Level Listeners
+      const stressButtons = document.querySelectorAll('.stress-btn');
+      stressButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          appState.stressLevel = btn.dataset.stress;
+          stressButtons.forEach(b => {
+            b.className = 'stress-btn py-2 text-xs font-semibold rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-100 transition';
+          });
+          if (appState.stressLevel === 'Low') {
+            btn.className = 'stress-btn py-2 text-xs font-bold rounded-lg border-2 border-emerald-600 bg-emerald-50 text-emerald-900 transition';
+          } else if (appState.stressLevel === 'Moderate') {
+            btn.className = 'stress-btn py-2 text-xs font-bold rounded-lg border-2 border-amber-500 bg-amber-50 text-amber-900 transition';
+          } else {
+            btn.className = 'stress-btn py-2 text-xs font-bold rounded-lg border-2 border-red-500 bg-red-50 text-red-900 transition';
+          }
+          recalculateScore();
+          updateRecoveryRecommender();
+        });
+      });
+
+      // Meditation Toggle
+      const toggleMeditationBtn = document.getElementById('toggle-meditation-btn');
+      const meditationStatusText = document.getElementById('meditation-status-text');
+      toggleMeditationBtn.addEventListener('click', () => {
+        appState.meditationDone = !appState.meditationDone;
+        if (appState.meditationDone) {
+          toggleMeditationBtn.textContent = '✓ Done';
+          toggleMeditationBtn.className = 'px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white transition shadow-sm';
+          meditationStatusText.textContent = '10 mins completed';
+        } else {
+          toggleMeditationBtn.textContent = 'Skip';
+          toggleMeditationBtn.className = 'px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-200 text-slate-600 transition';
+          meditationStatusText.textContent = 'Not done today';
+        }
+        recalculateScore();
+        updateRecoveryRecommender();
+      });
+
+      // Soreness / Injury Listeners
+      const sorenessButtons = document.querySelectorAll('.soreness-btn');
+      const sorenessBadge = document.getElementById('soreness-badge');
+      sorenessButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          appState.sorenessLevel = btn.dataset.soreness;
+          sorenessButtons.forEach(b => {
+            b.className = 'soreness-btn py-2 text-xs font-semibold rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-100 transition';
+          });
+          if (appState.sorenessLevel === 'None') {
+            btn.className = 'soreness-btn py-2 text-xs font-bold rounded-lg border-2 border-emerald-600 bg-emerald-50 text-emerald-900 transition';
+            sorenessBadge.textContent = 'Ready to Lift';
+            sorenessBadge.className = 'text-[10px] px-2 py-0.5 rounded-full font-bold bg-emerald-100 text-emerald-800';
+          } else if (appState.sorenessLevel === 'Mild') {
+            btn.className = 'soreness-btn py-2 text-xs font-bold rounded-lg border-2 border-amber-500 bg-amber-50 text-amber-900 transition';
+            sorenessBadge.textContent = 'Mild Soreness';
+            sorenessBadge.className = 'text-[10px] px-2 py-0.5 rounded-full font-bold bg-amber-100 text-amber-800';
+          } else {
+            btn.className = 'soreness-btn py-2 text-xs font-bold rounded-lg border-2 border-red-500 bg-red-50 text-red-900 transition';
+            sorenessBadge.textContent = 'Caution / Protect Joint';
+            sorenessBadge.className = 'text-[10px] px-2 py-0.5 rounded-full font-bold bg-red-100 text-red-800';
+          }
+          recalculateScore();
+          updateRecoveryRecommender();
+        });
+      });
+
+      // Habits Listeners
+      document.getElementById('habit-acv').addEventListener('change', (e) => {
+        appState.habitACV = e.target.checked;
+        recalculateScore();
+      });
+      document.getElementById('habit-seeds').addEventListener('change', (e) => {
+        appState.habitSeeds = e.target.checked;
+        recalculateScore();
+      });
+      document.getElementById('habit-fasting').addEventListener('change', (e) => {
+        appState.habitFasting = e.target.checked;
+        recalculateScore();
+      });
+
+      // Reset Day
+      document.getElementById('reset-day-btn').addEventListener('click', () => {
+        appState = JSON.parse(JSON.stringify(defaultState));
+        document.getElementById('meal-input').value = '';
+        renderExerciseOptions();
+        renderSets();
+        renderMeals();
+        renderWeeklyTrends();
+        renderStrengthChart();
+        updateRecoveryRecommender();
+        recalculateScore();
+      });
+
+      // Meal Logger
+      const logMealBtn = document.getElementById('log-meal-btn');
+      const mealInput = document.getElementById('meal-input');
+
+      logMealBtn.addEventListener('click', () => {
+        const text = mealInput.value.trim();
+        if (!text) return;
+        addMeal(text);
+        mealInput.value = '';
+      });
+
+      // Quick sample buttons
+      document.querySelectorAll('.sample-meal-pill').forEach(pill => {
+        pill.addEventListener('click', () => {
+          mealInput.value = pill.textContent.trim();
+        });
+      });
+    }
+
+    function parseMealNutrition(text) {
+      const lower = text.toLowerCase();
+      let cal = 150;
+      let prot = 5;
+      let fib = 2;
+
+      foodDatabase.forEach(item => {
+        for (const kw of item.keywords) {
+          if (lower.includes(kw)) {
+            cal += item.cal;
+            prot += item.prot;
+            fib += item.fib;
+            break;
+          }
+        }
+      });
+
+      return { calories: cal, protein: prot, fiber: fib };
+    }
+
+    function addMeal(text) {
+      const nutrition = parseMealNutrition(text);
+      appState.meals.push({
+        id: Date.now(),
+        text: text,
+        calories: nutrition.calories,
+        protein: nutrition.protein,
+        fiber: nutrition.fiber
+      });
+      renderMeals();
+      recalculateScore();
+    }
+
+    function removeMeal(id) {
+      appState.meals = appState.meals.filter(m => m.id !== id);
+      renderMeals();
+      recalculateScore();
+    }
+
+    function renderMeals() {
+      const container = document.getElementById('meals-list');
+      container.innerHTML = '';
+
+      let totalCal = 0;
+      let totalProt = 0;
+      let totalFib = 0;
+
+      appState.meals.forEach(m => {
+        totalCal += m.calories;
+        totalProt += m.protein;
+        totalFib += m.fiber;
+
+        const row = document.createElement('div');
+        row.className = 'p-2.5 bg-slate-50 border border-slate-200 rounded-xl flex items-start justify-between gap-2';
+        
+        row.innerHTML = `
+          <div class="flex-1">
+            <p class="font-medium text-slate-800">${escapeHtml(m.text)}</p>
+            <div class="flex gap-2 text-[10px] text-slate-500 mt-1">
+              <span class="font-semibold text-slate-600">${m.calories} kcal</span>
+              <span>•</span>
+              <span class="text-emerald-700 font-bold">${m.protein}g protein</span>
+              <span>•</span>
+              <span>${m.fiber}g fiber</span>
+            </div>
+          </div>
+          <button type="button" class="text-slate-400 hover:text-red-500 text-xs px-1" title="Delete entry">✕</button>
+        `;
+
+        row.querySelector('button').addEventListener('click', () => removeMeal(m.id));
+        container.appendChild(row);
+      });
+
+      const target = (currentUser && currentUser.proteinTarget) ? currentUser.proteinTarget : 94;
+      const pct = Math.min(100, Math.round((totalProt / target) * 100));
+
+      document.getElementById('total-calories').textContent = totalCal.toLocaleString();
+      document.getElementById('total-protein').textContent = `${totalProt}g`;
+      document.getElementById('total-fiber').textContent = `${totalFib}g`;
+      document.getElementById('meals-count-text').textContent = `${appState.meals.length} item(s) logged`;
+      document.getElementById('protein-percent-text').textContent = `${pct}%`;
+      document.getElementById('protein-progress-bar').style.width = `${pct}%`;
+      document.getElementById('tab-food-badge').textContent = `${totalProt}g / ${target}g`;
+
+      const tipBox = document.getElementById('coach-tip-text');
+      if (totalProt >= target) {
+        tipBox.textContent = `Excellent job! You've reached ${totalProt}g protein today, hitting your ${target}g hypertrophy goal.`;
+      } else if (totalProt >= Math.round(target * 0.7)) {
+        tipBox.textContent = `Current protein: ${totalProt}g. You're close! Adding greek yogurt, cottage cheese, roasted nuts, or a protein shake can bridge the remaining ${target - totalProt}g.`;
+      } else {
+        tipBox.textContent = `Protein is currently at ${totalProt}g against your ${target}g goal. Try adding tofu, lentils, beans, eggs, or protein powder to your next meal.`;
+      }
+    }
+
+    function recalculateScore() {
+      let score = 0;
+
+      // 1. Gym & Progressive Overload contribution (max 35 pts)
+      if (appState.workoutDone) {
+        score += 20;
+        let hasPR = false;
+        appState.sets.forEach(s => {
+          if (s.weight > s.prevWeight || (s.weight === s.prevWeight && s.reps > s.prevReps)) {
+            hasPR = true;
+          }
+        });
+        if (hasPR) score += 10;
+        if (appState.sets.length >= 3) score += 5;
+      } else {
+        score += 12;
+      }
+
+      // 2. Sleep & Wellness contribution (max 25 pts)
+      if (appState.sleepHours >= 7 && appState.sleepHours <= 9) score += 14;
+      else if (appState.sleepHours >= 6) score += 9;
+      else score += 4;
+
+      if (appState.sleepFeeling === 3) score += 4;
+      else if (appState.sleepFeeling === 2) score += 2;
+
+      if (appState.stressLevel === 'Low') score += 4;
+      else if (appState.stressLevel === 'Moderate') score += 2;
+
+      if (appState.meditationDone) score += 3;
+
+      // 3. Habits contribution (max 15 pts)
+      if (appState.habitACV) score += 5;
+      if (appState.habitSeeds) score += 5;
+      if (appState.habitFasting) score += 5;
+
+      // 4. Nutrition contribution (max 25 pts)
+      let totalProt = 0;
+      appState.meals.forEach(m => totalProt += m.protein);
+      const target = (currentUser && currentUser.proteinTarget) ? currentUser.proteinTarget : 94;
+
+      if (totalProt >= target) score += 25;
+      else if (totalProt >= Math.round(target * 0.75)) score += 18;
+      else if (totalProt >= Math.round(target * 0.5)) score += 12;
+      else score += 6;
+
+      score = Math.min(100, Math.max(0, score));
+
+      document.getElementById('score-display').innerHTML = `${score}<span class="text-xl font-normal text-emerald-200">/100</span>`;
+      
+      const diff = score - appState.yesterdayScore;
+      const compBadge = document.getElementById('comparison-badge');
+      const titleElem = document.getElementById('progression-title');
+      const descElem = document.getElementById('progression-desc');
+      const pillElem = document.getElementById('score-status-pill');
+
+      if (diff > 0) {
+        compBadge.textContent = `▲ +${diff} pts vs Yesterday`;
+        compBadge.className = 'px-2.5 py-1 bg-white/20 rounded-md text-xs font-semibold backdrop-blur-sm';
+        titleElem.textContent = 'Healthier Today! 🎉';
+        descElem.textContent = 'Progressive overload logged in gym, good sleep, and solid protein intake kept you ahead of yesterday.';
+        pillElem.textContent = 'Progressing';
+      } else if (diff === 0) {
+        compBadge.textContent = `= Matching Yesterday`;
+        compBadge.className = 'px-2.5 py-1 bg-white/20 rounded-md text-xs font-semibold backdrop-blur-sm';
+        titleElem.textContent = 'Holding Steady';
+        descElem.textContent = 'You are matching your baseline. Add a quick evening stretch or an extra protein snack to tip today into progress!';
+        pillElem.textContent = 'Maintaining';
+      } else {
+        compBadge.textContent = `▼ ${diff} pts vs Yesterday`;
+        compBadge.className = 'px-2.5 py-1 bg-amber-400/30 text-amber-100 rounded-md text-xs font-semibold backdrop-blur-sm';
+        titleElem.textContent = 'Room to Recover';
+        descElem.textContent = 'Today is slightly under baseline. Prioritize hitting your fasting window, taking your daily seeds, and getting restorative sleep tonight.';
+        pillElem.textContent = 'Needs Recovery';
+      }
+
+      weeklyHistoryData[6].score = score;
+    }
+
+    function escapeHtml(str) {
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    window.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>
