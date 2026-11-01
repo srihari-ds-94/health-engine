@@ -2,7 +2,6 @@ import unittest
 import os
 import sys
 
-# Add project root to sys.path
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 from app.engine import calculate_1rm, calculate_protein_target, evaluate_progressive_overload, calculate_daily_health_score
@@ -16,29 +15,28 @@ class TestHealthEngine(unittest.TestCase):
         init_db()
 
     def test_calculate_1rm(self):
-        # 50kg for 10 reps: 50 * (1 + 10/30) = 50 * 1.333 = 66.7 kg
         one_rm = calculate_1rm(50.0, 10)
         self.assertAlmostEqual(one_rm, 66.7, places=1)
-
-        # 100kg for 1 rep: exactly 100kg
         self.assertEqual(calculate_1rm(100.0, 1), 100.0)
 
     def test_calculate_protein_target(self):
-        # 67kg * 1.4 = 93.8 ~ 94g
-        res = calculate_protein_target(67.0, "muscle_gain")
-        self.assertEqual(res["target"], 94)
+        # Male: 67kg * 1.45 = 97g
+        res_male = calculate_protein_target(67.0, "muscle_gain", gender="male")
+        self.assertEqual(res_male["target"], 97)
 
-        # 67kg * 1.6 = 107.2 ~ 107g
-        res_recomp = calculate_protein_target(67.0, "recomp")
-        self.assertEqual(res_recomp["target"], 107)
+        # Female: 60kg * 1.35 = 81g
+        res_female = calculate_protein_target(60.0, "muscle_gain", gender="female")
+        self.assertEqual(res_female["target"], 81)
+
+        # Recomp: 67kg * 1.7 = 114g
+        res_recomp = calculate_protein_target(67.0, "recomp", gender="male")
+        self.assertEqual(res_recomp["target"], 114)
 
     def test_progressive_overload_eval(self):
-        # Beat previous reps with same weight
         eval_rep_pr = evaluate_progressive_overload(prev_weight=50.0, prev_reps=8, new_weight=50.0, new_reps=10)
         self.assertTrue(eval_rep_pr["is_pr"])
         self.assertEqual(eval_rep_pr["pr_type"], "rep")
 
-        # Beat previous weight
         eval_wt_pr = evaluate_progressive_overload(prev_weight=50.0, prev_reps=8, new_weight=52.5, new_reps=6)
         self.assertTrue(eval_wt_pr["is_pr"])
         self.assertEqual(eval_wt_pr["pr_type"], "weight")
@@ -62,8 +60,8 @@ class TestHealthEngine(unittest.TestCase):
             habit_acv=True,
             habit_seeds=True,
             habit_fasting=True,
-            total_protein=95,
-            protein_target=94,
+            total_protein=97,
+            protein_target=97,
             yesterday_score=74
         )
         self.assertGreaterEqual(res["score"], 80)

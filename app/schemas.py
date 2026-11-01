@@ -6,6 +6,7 @@ class UserRegisterRequest(BaseModel):
     name: str
     email: str
     password: str
+    gender: str = "male"  # male, female, other
     age: int = 30
     height: float = 180.0
     weight: float = 67.0
@@ -22,6 +23,7 @@ class UserProfileResponse(BaseModel):
     id: int
     name: str
     email: str
+    gender: str
     age: int
     height: float
     weight: float
@@ -32,6 +34,7 @@ class UserProfileResponse(BaseModel):
 
 class UserUpdateRequest(BaseModel):
     name: Optional[str] = None
+    gender: Optional[str] = None
     age: Optional[int] = None
     height: Optional[float] = None
     weight: Optional[float] = None
@@ -128,6 +131,7 @@ class DayScoreSummary(BaseModel):
 class AIQueryRequest(BaseModel):
     user_id: int
     query: str
+    api_key: Optional[str] = None
 
 class AIQueryResponse(BaseModel):
     query: str

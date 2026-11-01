@@ -21,10 +21,9 @@ from app.ai_coach import parse_meal_nutrition, get_ai_coaching_response
 app = FastAPI(
     title="HealthEngine API",
     description="Backend engine for Personalized Health Progression & Progressive Overload Tracking",
-    version="1.0.0"
+    version="1.1.0"
 )
 
-# Enable CORS for local testing or cross-origin frontends
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -33,12 +32,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Initialize Database on startup
 @app.on_event("startup")
 def on_startup():
     init_db()
 
-# --- Static Frontend Serving ---
 static_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "static")
 if os.path.exists(static_dir):
     app.mount("/static", StaticFiles(directory=static_dir), name="static")
@@ -63,9 +60,9 @@ def register_user(req: UserRegisterRequest):
             raise HTTPException(status_code=400, detail="Email is already registered")
 
         cursor.execute("""
-            INSERT INTO users (name, email, password_hash, age, height, weight, goal, diet, protein_target, routine)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """, (req.name, req.email, req.password, req.age, req.height, req.weight, req.goal, req.diet, req.protein_target, req.routine))
+            INSERT INTO users (name, email, password_hash, gender, age, height, weight, goal, diet, protein_target, routine)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (req.name, req.email, req.password, req.gender, req.age, req.height, req.weight, req.goal, req.diet, req.protein_target, req.routine))
         user_id = cursor.lastrowid
 
         cursor.execute("SELECT * FROM users WHERE id = ?", (user_id,))
@@ -80,7 +77,6 @@ def login_user(req: UserLoginRequest):
         row = cursor.fetchone()
         if not row:
             raise HTTPException(status_code=401, detail="User not found")
-        # For prototype simplicity, matching password directly
         if row["password_hash"] != req.password and req.password != "demo_hash_123":
             raise HTTPException(status_code=401, detail="Invalid credentials")
         return dict(row)
@@ -105,6 +101,7 @@ def update_user_profile(user_id: int, req: UserUpdateRequest):
             raise HTTPException(status_code=404, detail="User not found")
 
         name = req.name if req.name is not None else current["name"]
+        gender = req.gender if req.gender is not None else current["gender"]
         age = req.age if req.age is not None else current["age"]
         height = req.height if req.height is not None else current["height"]
         weight = req.weight if req.weight is not None else current["weight"]
@@ -114,9 +111,9 @@ def update_user_profile(user_id: int, req: UserUpdateRequest):
         routine = req.routine if req.routine is not None else current["routine"]
 
         cursor.execute("""
-            UPDATE users SET name=?, age=?, height=?, weight=?, goal=?, diet=?, protein_target=?, routine=?
+            UPDATE users SET name=?, gender=?, age=?, height=?, weight=?, goal=?, diet=?, protein_target=?, routine=?
             WHERE id=?
-        """, (name, age, height, weight, goal, diet, protein_target, routine, user_id))
+        """, (name, gender, age, height, weight, goal, diet, protein_target, routine, user_id))
 
         cursor.execute("SELECT * FROM users WHERE id = ?", (user_id,))
         return dict(cursor.fetchone())
@@ -131,7 +128,6 @@ def log_workout_set(req: LogSetRequest):
         cursor = conn.cursor()
         est_1rm = calculate_1rm(req.weight, req.reps)
 
-        # Find previous record for this exercise
         cursor.execute("""
             SELECT weight, reps FROM workout_sets
             WHERE user_id = ? AND exercise_name = ?
@@ -202,7 +198,6 @@ def get_strength_curve(user_id: int, exercise_key: str):
         rows = cursor.fetchall()
 
         if not rows:
-            # Fallback sample curve if not populated
             points = [
                 StrengthMilestonePoint(week_label="W1", working_weight=45.0, reps=6, est_1rm=54.0),
                 StrengthMilestonePoint(week_label="W2", working_weight=47.5, reps=6, est_1rm=57.0),
@@ -285,17 +280,14 @@ def save_day_log(req: DayLogRequest):
     with get_db() as conn:
         cursor = conn.cursor()
 
-        # Get user protein target
         cursor.execute("SELECT protein_target FROM users WHERE id = ?", (req.user_id,))
         user_row = cursor.fetchone()
         protein_target = user_row["protein_target"] if user_row else 94
 
-        # Sum protein from meals
         cursor.execute("SELECT SUM(protein) as total_prot FROM meals WHERE user_id = ? AND date = ?", (req.user_id, req.date))
         prot_row = cursor.fetchone()
         total_protein = prot_row["total_prot"] if prot_row and prot_row["total_prot"] else 0
 
-        # Check PRs in workout sets
         cursor.execute("SELECT COUNT(*) as cnt, MAX(is_pr) as has_pr FROM workout_sets WHERE user_id = ? AND date = ?", (req.user_id, req.date))
         set_row = cursor.fetchone()
         sets_count = set_row["cnt"] if set_row else 0
@@ -357,5 +349,5 @@ def query_ai_coach(req: AIQueryRequest):
         user_row = cursor.fetchone()
         profile = dict(user_row) if user_row else {}
 
-    html_ans = get_ai_coaching_response(req.query, profile)
+    html_ans = get_ai_coaching_response(req.query, profile, req.api_key)
     return {"query": req.query, "response_html": html_ans}

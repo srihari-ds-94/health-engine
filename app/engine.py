@@ -4,20 +4,57 @@ def calculate_1rm(weight: float, reps: int) -> float:
         return float(weight)
     return round(float(weight) * (1.0 + reps / 30.0), 1)
 
-def calculate_protein_target(weight: float, goal: str) -> dict:
-    """Calculate personalized daily protein target based on body weight and goal."""
-    multiplier = 1.4
-    desc = "1.4g/kg for athletic hypertrophy & muscle gain"
-    
-    if goal == "recomp":
-        multiplier = 1.6
-        desc = "1.6g/kg to preserve lean tissue during fat loss"
-    elif goal == "maintenance":
-        multiplier = 1.0
-        desc = "1.0g/kg for metabolic vitality and maintenance"
+def calculate_protein_target(weight: float, goal: str, gender: str = "male", age: int = 30, height: float = 175.0) -> dict:
+    """
+    Biological gender-aware calculation for protein target and BMR/TDEE.
+    Accounts for lean body mass baseline, metabolic rate, and muscle protein synthesis differences.
+    """
+    g_lower = (gender or "male").lower()
+
+    if g_lower == "male":
+        bmr = (10 * weight) + (6.25 * height) - (5 * age) + 5
+        if goal == "recomp":
+            multiplier = 1.7
+            desc = "1.7g/kg for male body recomposition to preserve lean mass during fat loss"
+        elif goal == "maintenance":
+            multiplier = 1.1
+            desc = "1.1g/kg for male metabolic vitality and joint health"
+        else: # muscle_gain
+            multiplier = 1.45
+            desc = "1.45g/kg calibrated for male athletic hypertrophy and muscle protein synthesis"
+    elif g_lower == "female":
+        bmr = (10 * weight) + (6.25 * height) - (5 * age) - 161
+        if goal == "recomp":
+            multiplier = 1.55
+            desc = "1.55g/kg for female body recomposition, preserving nitrogen balance while in deficit"
+        elif goal == "maintenance":
+            multiplier = 1.0
+            desc = "1.0g/kg for female daily vitality, hormone balance, and lean muscle retention"
+        else: # muscle_gain
+            multiplier = 1.35
+            desc = "1.35g/kg calibrated for female athletic lean muscle synthesis"
+    else:
+        bmr = (10 * weight) + (6.25 * height) - (5 * age) - 78
+        if goal == "recomp":
+            multiplier = 1.6
+            desc = "1.6g/kg for active body recomposition"
+        elif goal == "maintenance":
+            multiplier = 1.05
+            desc = "1.05g/kg for maintenance and vitality"
+        else:
+            multiplier = 1.4
+            desc = "1.4g/kg for athletic hypertrophy"
 
     target = int(round(weight * multiplier))
-    return {"target": target, "multiplier": multiplier, "desc": desc}
+    tdee = int(round(bmr * 1.375)) # Moderate training multiplier
+
+    return {
+        "target": target,
+        "multiplier": multiplier,
+        "desc": desc,
+        "bmr": int(round(bmr)),
+        "tdee": tdee
+    }
 
 def evaluate_progressive_overload(prev_weight: float, prev_reps: int, new_weight: float, new_reps: int) -> dict:
     """Check if a new set represents progressive overload or a personal record."""

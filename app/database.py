@@ -22,7 +22,7 @@ def get_db():
         conn.close()
 
 def init_db():
-    """Create tables if they don't already exist and seed initial demo user."""
+    """Create tables if they don't already exist, migrate schema, and seed demo user."""
     with get_db() as conn:
         cursor = conn.cursor()
 
@@ -33,6 +33,7 @@ def init_db():
                 name TEXT NOT NULL,
                 email TEXT UNIQUE NOT NULL,
                 password_hash TEXT NOT NULL,
+                gender TEXT DEFAULT 'male',
                 age INTEGER DEFAULT 30,
                 height REAL DEFAULT 180,
                 weight REAL DEFAULT 67,
@@ -43,6 +44,12 @@ def init_db():
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """)
+
+        # Migration check: Ensure 'gender' column exists in case db was previously initialized
+        cursor.execute("PRAGMA table_info(users)")
+        columns = [col[1] for col in cursor.fetchall()]
+        if "gender" not in columns:
+            cursor.execute("ALTER TABLE users ADD COLUMN gender TEXT DEFAULT 'male'")
 
         # Day Logs (Daily Health Engine Scores & Inputs)
         cursor.execute("""
@@ -119,16 +126,15 @@ def init_db():
             )
         """)
 
-        # Seed initial demo user if empty
-        cursor.execute("SELECT id FROM users WHERE email = 'alex@example.com'")
+        # Seed initial demo user ONLY (does not touch any other registered users)
+        cursor.execute("SELECT id FROM users WHERE email = 'demo@healthengine.local'")
         if not cursor.fetchone():
             cursor.execute("""
-                INSERT INTO users (name, email, password_hash, age, height, weight, goal, diet, protein_target, routine)
-                VALUES ('Alex Rivera', 'alex@example.com', 'demo_hash_123', 32, 185, 67.0, 'muscle_gain', 'Plant-Based / Vegetarian', 94, 'Late Shift (1:00 PM – 10:00 PM)')
+                INSERT INTO users (name, email, password_hash, gender, age, height, weight, goal, diet, protein_target, routine)
+                VALUES ('Demo Athlete', 'demo@healthengine.local', 'demo_hash_123', 'male', 32, 185, 67.0, 'muscle_gain', 'Plant-Based / Vegetarian', 94, 'Late Shift (1:00 PM – 10:00 PM)')
             """)
             user_id = cursor.lastrowid
 
-            # Seed demo strength milestones for Bench Press
             bench_weeks = [
                 ("W1 (Oct 4)", 45.0, 6, 54.0),
                 ("W2 (Oct 11)", 47.5, 6, 57.0),
