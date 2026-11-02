@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import List, Optional
+from typing import List, Optional, Any, Dict
 
 # --- User & Auth Schemas ---
 class UserRegisterRequest(BaseModel):
@@ -8,11 +8,11 @@ class UserRegisterRequest(BaseModel):
     password: str
     gender: str = "male"  # male, female, other
     age: int = 30
-    height: float = 180.0
+    height: float = 175.0
     weight: float = 67.0
     goal: str = "muscle_gain"
-    diet: str = "Plant-Based / Vegetarian"
-    protein_target: int = 94
+    diet: str = "Balanced Omnivore"
+    protein_target: int = 97
     routine: str = "Standard Day"
 
 class UserLoginRequest(BaseModel):
@@ -105,16 +105,16 @@ class MealResponse(BaseModel):
 class DayLogRequest(BaseModel):
     user_id: int
     date: str
-    workout_done: bool = True
+    workout_done: bool = False
     workout_split: str = "Push"
     sleep_hours: float = 7.5
     sleep_feeling: int = 2
     stress_level: str = "Low"
-    meditation_done: bool = True
+    meditation_done: bool = False
     soreness_level: str = "None"
-    habit_acv: bool = True
-    habit_seeds: bool = True
-    habit_fasting: bool = True
+    habit_acv: bool = False
+    habit_seeds: bool = False
+    habit_fasting: bool = False
 
 class DayScoreSummary(BaseModel):
     score: int
@@ -126,6 +126,45 @@ class DayScoreSummary(BaseModel):
     readiness_pct: int
     recovery_title: str
     recovery_text: str
+
+# --- Full User Data Sync Schemas ---
+class UserStateSyncRequest(BaseModel):
+    user_id: int
+    date: str
+    workout_done: bool = False
+    workout_split: str = "Push"
+    sets: List[Dict[str, Any]] = []
+    meals: List[Dict[str, Any]] = []
+    sleep_hours: float = 7.5
+    sleep_feeling: int = 2
+    stress_level: str = "Low"
+    meditation_done: bool = False
+    soreness_level: str = "None"
+    habit_acv: bool = False
+    habit_seeds: bool = False
+    habit_fasting: bool = False
+    score: int = 0
+    yesterday_score: int = 70
+
+class UserStateResponse(BaseModel):
+    user_id: int
+    date: str
+    workout_done: bool
+    workout_split: str
+    sets: List[WorkoutSetResponse]
+    meals: List[MealResponse]
+    strength_points: List[StrengthMilestonePoint]
+    sleep_hours: float
+    sleep_feeling: int
+    stress_level: str
+    meditation_done: bool
+    soreness_level: str
+    habit_acv: bool
+    habit_seeds: bool
+    habit_fasting: bool
+    score: int
+    yesterday_score: int
+    readiness_pct: int
 
 # --- AI Coach Schemas ---
 class AIQueryRequest(BaseModel):

@@ -45,7 +45,7 @@ def call_gemini_api(api_key: str, query: str, user_profile: dict) -> str:
         f"You are the HealthEngine AI Coach. The user is: {user_profile.get('name', 'User')}, "
         f"Gender: {user_profile.get('gender', 'not specified')}, Weight: {user_profile.get('weight', 67)}kg, "
         f"Goal: {user_profile.get('goal', 'muscle_gain')}, Diet: {user_profile.get('diet', 'Vegetarian')}, "
-        f"Daily Protein Target: {user_profile.get('protein_target', 94)}g. "
+        f"Daily Protein Target: {user_profile.get('protein_target', 97)}g. "
         "Provide direct, concise, actionable advice (2 to 4 bullet points). Always reply directly to their specific question."
     )
 
@@ -66,7 +66,6 @@ def call_gemini_api(api_key: str, query: str, user_profile: dict) -> str:
     with urllib.request.urlopen(req, timeout=8) as response:
         data = json.loads(response.read().decode("utf-8"))
         raw_text = data["candidates"][0]["content"]["parts"][0]["text"]
-        # Basic markdown to HTML bullet conversion
         lines = raw_text.split("\n")
         html_lines = []
         for line in lines:
@@ -80,26 +79,40 @@ def call_gemini_api(api_key: str, query: str, user_profile: dict) -> str:
 def get_ai_coaching_response(query: str, user_profile: dict, custom_key: str = None) -> str:
     """
     Intelligent multi-intent query router.
-    Routes correctly to WORKOUT, INJURY, SLEEP, NUTRITION, or SUPPLEMENTS.
-    Never returns irrelevant food templates to workout questions!
+    Prioritizes INJURY/SAFETY first, then WORKOUT, SLEEP, NUTRITION.
     """
     api_key = custom_key or os.getenv("GEMINI_API_KEY")
     if api_key:
         try:
             return call_gemini_api(api_key, query, user_profile)
         except Exception:
-            pass  # Fall back to high-fidelity local intent engine
+            pass
 
     q_lower = query.lower()
     gender = (user_profile.get("gender") or "male").lower()
     weight = user_profile.get("weight", 67)
-    target = user_profile.get("protein_target", 94)
+    target = user_profile.get("protein_target", 97)
+    diet = user_profile.get("diet", "Balanced")
 
-    # 1. WORKOUT & PROGRESSIVE OVERLOAD INTENTS
+    # 1. INJURY & SAFETY INTENTS (HIGHEST PRIORITY)
+    injury_keywords = ["pinch", "shoulder", "knee", "pain", "injury", "hurt", "tweak", "impingement", "joint", "rotator cuff"]
+    if any(k in q_lower for k in injury_keywords):
+        return """
+        <div class="space-y-2">
+          <p class="font-bold text-red-950">🩺 Joint Protection & Injury Mitigation:</p>
+          <ul class="list-disc pl-4 space-y-1.5 text-slate-700">
+            <li><strong>Shoulder Pinch Mechanics:</strong> A tweak on overhead pressing usually stems from flared elbows or lack of thoracic spine extension. Tuck elbows 30° inward in the scapular plane.</li>
+            <li><strong>Pain-Free Substitutions:</strong> Switch from straight barbells to neutral-grip dumbbells, landmine presses, or high incline presses to avoid subacromial impingement.</li>
+            <li><strong>Rotator Cuff Priming:</strong> Perform 2 sets of 15 face pulls and band pull-aparts to activate external rotators and stabilizers before pressing.</li>
+          </ul>
+        </div>
+        """
+
+    # 2. WORKOUT & PROGRESSIVE OVERLOAD INTENTS
     workout_keywords = [
         "workout", "exercise", "lift", "lifting", "bench", "squat", "deadlift", "rdl",
         "overload", "progressive overload", "push", "pull", "legs", "rep", "reps", "set",
-        "sets", "1rm", "chest", "bicep", "tricep", "shoulder", "back", "lat", "hypertrophy",
+        "sets", "1rm", "chest", "bicep", "tricep", "back", "lat", "hypertrophy",
         "strength", "weights", "dumbbells", "barbell", "failure", "rpe", "rest"
     ]
     if any(k in q_lower for k in workout_keywords):
@@ -120,47 +133,23 @@ def get_ai_coaching_response(query: str, user_profile: dict, custom_key: str = N
             <div class="space-y-2">
               <p class="font-bold text-orange-950">🏋️ Lower Body & Squat Progression:</p>
               <ul class="list-disc pl-4 space-y-1.5 text-slate-700">
-                <li><strong>Depth & Footing:</strong> Stance slightly wider than shoulder-width, toes angled out 15–30 degrees. Descend until hip crease is below the knee (parallel or below).</li>
+                <li><strong>Depth & Footing:</strong> Stance slightly wider than shoulder-width, toes angled out 15–30 degrees. Descend until hip crease is parallel with knees.</li>
                 <li><strong>Bracing Mechanism:</strong> Take a deep diaphragmatic breath into your core and brace (Valsalva maneuver) before initiating each repetition.</li>
                 <li><strong>Overload Recommendation:</strong> Back squats respond best to 2.5kg wave loading. Target 3 working sets of 6–8 reps before adding load.</li>
-              </ul>
-            </div>
-            """
-        elif "rep" in q_lower or "set" in q_lower or "how many" in q_lower or "volume" in q_lower:
-            return f"""
-            <div class="space-y-2">
-              <p class="font-bold text-orange-950">🏋️ Optimal Training Volume & Rep Ranges:</p>
-              <ul class="list-disc pl-4 space-y-1.5 text-slate-700">
-                <li><strong>Hypertrophy Sweet Spot:</strong> 10 to 16 total hard working sets per muscle group per week (e.g., 6-8 sets per Push session).</li>
-                <li><strong>Rep Range:</strong> 6 to 10 reps for heavy compound movements (Bench, Squat, OHP); 10 to 15 reps for isolation (Tricep Pushdowns, Lateral Raises).</li>
-                <li><strong>Intensity:</strong> Train within 1 to 2 reps in reserve (RIR 1-2) on compound lifts; push isolation sets to 0 RIR or failure.</li>
               </ul>
             </div>
             """
         else:
             return f"""
             <div class="space-y-2">
-              <p class="font-bold text-orange-950">🏋️ Resistance Training & Progressive Overload Engine:</p>
+              <p class="font-bold text-orange-950">🏋️ Progressive Overload & Training Volume:</p>
               <ul class="list-disc pl-4 space-y-1.5 text-slate-700">
                 <li><strong>The 3 Overload Pathways:</strong> (1) Add 1-2 reps at current weight, (2) Add weight once target reps are mastered, or (3) Improve movement tempo (3-second eccentric).</li>
-                <li><strong>Fatigue Management:</strong> Rotate through your Push/Pull/Legs/Core split to ensure 48 hours recovery between the same primary muscle groups.</li>
-                <li><strong>Warm-up Protocol:</strong> 2 progressive ramp-up sets (40% and 70% of working weight) before your first heavy working set.</li>
+                <li><strong>Volume Target:</strong> Aim for 10-14 hard working sets per muscle group per week within 1-2 Reps In Reserve (RIR).</li>
+                <li><strong>Compound Priming:</strong> Perform 2 light warmup ramp-up sets before your first heavy working set.</li>
               </ul>
             </div>
             """
-
-    # 2. INJURY & SORENESS INTENTS
-    if any(k in q_lower for k in ["injury", "pain", "hurt", "sore", "soreness", "tweak", "pinch", "joint", "shoulder", "knee", "back"]):
-        return """
-        <div class="space-y-2">
-          <p class="font-bold text-red-950">🩺 Injury Prevention & Joint Readiness:</p>
-          <ul class="list-disc pl-4 space-y-1.5 text-slate-700">
-            <li><strong>DOMS vs. Joint Pain:</strong> Muscle belly soreness 24-48 hours post-workout is normal. Sharp joint pain or localized tendon twinges require immediate load reduction.</li>
-            <li><strong>Active Deload:</strong> If you feel a joint tweak, replace the exercise with a joint-friendly variation (e.g., replace barbell bench with neutral-grip dumbbell press).</li>
-            <li><strong>Rotator Cuff & Hip Primers:</strong> Add 2 sets of external band rotations (face pulls) and glute bridges before loading heavy.</li>
-          </ul>
-        </div>
-        """
 
     # 3. SLEEP & CHRONO-BIOLOGY INTENTS
     if any(k in q_lower for k in ["sleep", "shift", "night", "insomnia", "tired", "bed", "rest", "wake"]):
@@ -168,36 +157,47 @@ def get_ai_coaching_response(query: str, user_profile: dict, custom_key: str = N
         <div class="space-y-2">
           <p class="font-bold text-indigo-950">🌙 Sleep Architecture & Chrono-Recovery:</p>
           <ul class="list-disc pl-4 space-y-1.5 text-slate-700">
-            <li><strong>Caffeine Cutoff:</strong> Adenosine clearance takes 6-8 hours. Stop coffee or pre-workout by 4:00 PM if winding down by 11:00 PM.</li>
+            <li><strong>Caffeine Cutoff:</strong> Adenosine clearance takes 6-8 hours. Stop caffeine 7 hours prior to bedtime.</li>
             <li><strong>Late Shift Wind-down:</strong> Avoid bright screen exposure during your final work hour; blue-light blocks pineal melatonin secretion.</li>
-            <li><strong>Temperature & Darkness:</strong> Keep the bedroom at ~18-20°C (65-68°F). A dropping core body temperature signals the brain to enter Stage 3 deep slow-wave sleep.</li>
+            <li><strong>Temperature:</strong> Keep the bedroom cool (~18-20°C / 65-68°F) to facilitate the natural core body temperature drop needed for Stage 3 deep sleep.</li>
           </ul>
         </div>
         """
 
-    # 4. NUTRITION & PROTEIN INTENTS
-    if any(k in q_lower for k in ["food", "diet", "protein", "eat", "meal", "calorie", "carb", "macro", "shake", "snack"]):
-        gender_note = "male lean mass targets" if gender == "male" else "female nitrogen balance & hormonal preservation"
-        return f"""
-        <div class="space-y-2">
-          <p class="font-bold text-emerald-950">🥗 Targeted Nutrition & Protein Synthesis ({gender.capitalize()}, {target}g Target):</p>
-          <ul class="list-disc pl-4 space-y-1.5 text-slate-700">
-            <li><strong>Target Distribution:</strong> Spread your {target}g protein across 3 to 4 eating opportunities (~25g–35g per feeding) to sustain muscle protein synthesis.</li>
-            <li><strong>Leucine Threshold:</strong> Ensure each main meal contains at least 2.5g of the essential amino acid leucine (found in greek yogurt, tofu/paneer, lentils + grains, or protein powder).</li>
-            <li><strong>Carb Timing:</strong> Consume complex carbohydrates (brown rice, oats, sweet potatoes) around your training window to replenish muscle glycogen.</li>
-            <li><strong>Hydration:</strong> Aim for 35ml to 40ml of water per kg of body weight (~2.5 to 3 liters daily) for intracellular volumization.</li>
-          </ul>
-        </div>
-        """
+    # 4. NUTRITION & KETO INTENTS
+    if any(k in q_lower for k in ["keto", "ketogenic", "carbs", "carb", "protein", "food", "eat", "meal", "fat"]):
+        if "keto" in q_lower or "keto" in diet.lower():
+            return f"""
+            <div class="space-y-2">
+              <p class="font-bold text-emerald-950">🥑 Ketogenic Protocol & Macro Management ({gender.capitalize()}):</p>
+              <ul class="list-disc pl-4 space-y-1.5 text-slate-700">
+                <li><strong>Carb Limit:</strong> Keep net carbohydrates strictly under 30g to 50g daily to maintain liver ketone production (acetoacetate/beta-hydroxybutyrate).</li>
+                <li><strong>Protein Moderation:</strong> Your target of <strong>{target}g protein</strong> is calibrated to preserve muscle without excessive gluconeogenesis.</li>
+                <li><strong>Electrolyte Balance:</strong> In ketosis, kidneys excrete sodium rapidly. Add 2g-3g of sodium (sea salt) and ensure adequate magnesium & potassium to prevent keto fatigue.</li>
+                <li><strong>Healthy Fats:</strong> Anchor calories with avocado, extra virgin olive oil, nuts, and MCTs.</li>
+              </ul>
+            </div>
+            """
+        else:
+            return f"""
+            <div class="space-y-2">
+              <p class="font-bold text-emerald-950">🥗 Targeted Nutrition & Protein Synthesis ({target}g Target):</p>
+              <ul class="list-disc pl-4 space-y-1.5 text-slate-700">
+                <li><strong>Distribution:</strong> Spread your {target}g protein across 3 to 4 meals (~25g–35g per feeding) to optimize muscle protein synthesis.</li>
+                <li><strong>Leucine Threshold:</strong> Ensure each main meal contains at least 2.5g of leucine for mTOR pathway activation.</li>
+                <li><strong>Post-Workout Window:</strong> Consume a balanced protein and carbohydrate meal within 1-2 hours after your session to replenish glycogen.</li>
+              </ul>
+            </div>
+            """
 
-    # 5. GENERAL COMPREHENSIVE HEALTH ENGINE SUMMARY
+    # 5. GENERAL SUMMARY
     return f"""
     <div class="space-y-2">
-      <p class="font-bold text-purple-950">✨ HealthEngine Daily Readiness Synthesis ({user_profile.get('name', 'Athlete')}):</p>
+      <p class="font-bold text-purple-950">✨ HealthEngine Daily Synthesis ({user_profile.get('name', 'Athlete')}):</p>
       <ul class="list-disc pl-4 space-y-1.5 text-slate-700">
-        <li><strong>Gender-Calibrated Target:</strong> Based on your {gender.capitalize()} physiology and {weight}kg body weight, your daily target is <strong>{target}g protein</strong>.</li>
-        <li><strong>Training Objective:</strong> Complete your scheduled split with deliberate progressive overload; log all sets with exact weights and reps.</li>
-        <li><strong>Recovery Baseline:</strong> Target 7.5 to 8.5 hours of sleep tonight to maximize testosterone/GH release and CNS recovery.</li>
+        <li><strong>Biological Baseline:</strong> Calibrated for {gender.capitalize()}, {weight}kg, targeting {target}g protein daily.</li>
+        <li><strong>Training Focus:</strong> Progressive overload on compound lifts with 2-3 minutes rest between working sets.</li>
+        <li><strong>Recovery:</strong> Target 7.5 to 8.5 hours of sleep to support natural endocrine recovery and tissue synthesis.</li>
       </ul>
     </div>
     """

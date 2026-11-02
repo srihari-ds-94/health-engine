@@ -1,8 +1,13 @@
 import sqlite3
 import os
+import hashlib
 from contextlib import contextmanager
 
 DB_PATH = os.getenv("DATABASE_PATH", "healthengine.db")
+
+def hash_password(password: str) -> str:
+    """Secure SHA-256 password hash."""
+    return hashlib.sha256(password.encode("utf-8")).hexdigest()
 
 @contextmanager
 def get_db():
@@ -35,17 +40,17 @@ def init_db():
                 password_hash TEXT NOT NULL,
                 gender TEXT DEFAULT 'male',
                 age INTEGER DEFAULT 30,
-                height REAL DEFAULT 180,
+                height REAL DEFAULT 175,
                 weight REAL DEFAULT 67,
                 goal TEXT DEFAULT 'muscle_gain',
                 diet TEXT DEFAULT 'Plant-Based / Vegetarian',
-                protein_target INTEGER DEFAULT 94,
+                protein_target INTEGER DEFAULT 97,
                 routine TEXT DEFAULT 'Standard Day',
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """)
 
-        # Migration check: Ensure 'gender' column exists in case db was previously initialized
+        # Migration check: Ensure 'gender' column exists
         cursor.execute("PRAGMA table_info(users)")
         columns = [col[1] for col in cursor.fetchall()]
         if "gender" not in columns:
@@ -57,19 +62,19 @@ def init_db():
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 user_id INTEGER NOT NULL,
                 date TEXT NOT NULL,
-                workout_done INTEGER DEFAULT 1,
+                workout_done INTEGER DEFAULT 0,
                 workout_split TEXT DEFAULT 'Push',
                 sleep_hours REAL DEFAULT 7.5,
                 sleep_feeling INTEGER DEFAULT 2,
                 stress_level TEXT DEFAULT 'Low',
-                meditation_done INTEGER DEFAULT 1,
+                meditation_done INTEGER DEFAULT 0,
                 soreness_level TEXT DEFAULT 'None',
-                habit_acv INTEGER DEFAULT 1,
-                habit_seeds INTEGER DEFAULT 1,
-                habit_fasting INTEGER DEFAULT 1,
-                score INTEGER DEFAULT 80,
-                yesterday_score INTEGER DEFAULT 74,
-                delta INTEGER DEFAULT 6,
+                habit_acv INTEGER DEFAULT 0,
+                habit_seeds INTEGER DEFAULT 0,
+                habit_fasting INTEGER DEFAULT 0,
+                score INTEGER DEFAULT 0,
+                yesterday_score INTEGER DEFAULT 70,
+                delta INTEGER DEFAULT 0,
                 readiness_pct INTEGER DEFAULT 85,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (user_id) REFERENCES users (id),
@@ -126,13 +131,14 @@ def init_db():
             )
         """)
 
-        # Seed initial demo user ONLY (does not touch any other registered users)
-        cursor.execute("SELECT id FROM users WHERE email = 'demo@healthengine.local'")
+        # Seed initial demo user ONLY if not already present
+        demo_email = "demo@healthengine.local"
+        cursor.execute("SELECT id FROM users WHERE email = ?", (demo_email,))
         if not cursor.fetchone():
             cursor.execute("""
                 INSERT INTO users (name, email, password_hash, gender, age, height, weight, goal, diet, protein_target, routine)
-                VALUES ('Demo Athlete', 'demo@healthengine.local', 'demo_hash_123', 'male', 32, 185, 67.0, 'muscle_gain', 'Plant-Based / Vegetarian', 94, 'Late Shift (1:00 PM – 10:00 PM)')
-            """)
+                VALUES ('Demo Athlete', ?, ?, 'male', 32, 185, 67.0, 'muscle_gain', 'Plant-Based / Vegetarian', 97, 'Late Shift (1:00 PM – 10:00 PM)')
+            """, (demo_email, hash_password("demo123")))
             user_id = cursor.lastrowid
 
             bench_weeks = [

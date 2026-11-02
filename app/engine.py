@@ -4,16 +4,20 @@ def calculate_1rm(weight: float, reps: int) -> float:
         return float(weight)
     return round(float(weight) * (1.0 + reps / 30.0), 1)
 
-def calculate_protein_target(weight: float, goal: str, gender: str = "male", age: int = 30, height: float = 175.0) -> dict:
+def calculate_protein_target(weight: float, goal: str, gender: str = "male", age: int = 30, height: float = 175.0, diet: str = "Balanced") -> dict:
     """
     Biological gender-aware calculation for protein target and BMR/TDEE.
-    Accounts for lean body mass baseline, metabolic rate, and muscle protein synthesis differences.
+    Accounts for lean body mass baseline, metabolic rate, goal, and dietary preference (including Keto).
     """
     g_lower = (gender or "male").lower()
+    is_keto = "keto" in (diet or "").lower()
 
     if g_lower == "male":
         bmr = (10 * weight) + (6.25 * height) - (5 * age) + 5
-        if goal == "recomp":
+        if is_keto:
+            multiplier = 1.6
+            desc = "1.6g/kg calibrated for Ketogenic adaptation (moderates protein to prevent excess gluconeogenesis while sparing muscle in ketosis)"
+        elif goal == "recomp":
             multiplier = 1.7
             desc = "1.7g/kg for male body recomposition to preserve lean mass during fat loss"
         elif goal == "maintenance":
@@ -24,7 +28,10 @@ def calculate_protein_target(weight: float, goal: str, gender: str = "male", age
             desc = "1.45g/kg calibrated for male athletic hypertrophy and muscle protein synthesis"
     elif g_lower == "female":
         bmr = (10 * weight) + (6.25 * height) - (5 * age) - 161
-        if goal == "recomp":
+        if is_keto:
+            multiplier = 1.5
+            desc = "1.5g/kg calibrated for female Ketogenic adaptation (preserves nitrogen balance and ketone production)"
+        elif goal == "recomp":
             multiplier = 1.55
             desc = "1.55g/kg for female body recomposition, preserving nitrogen balance while in deficit"
         elif goal == "maintenance":
@@ -35,7 +42,10 @@ def calculate_protein_target(weight: float, goal: str, gender: str = "male", age
             desc = "1.35g/kg calibrated for female athletic lean muscle synthesis"
     else:
         bmr = (10 * weight) + (6.25 * height) - (5 * age) - 78
-        if goal == "recomp":
+        if is_keto:
+            multiplier = 1.55
+            desc = "1.55g/kg calibrated for ketogenic metabolic adaptation"
+        elif goal == "recomp":
             multiplier = 1.6
             desc = "1.6g/kg for active body recomposition"
         elif goal == "maintenance":
@@ -58,19 +68,19 @@ def calculate_protein_target(weight: float, goal: str, gender: str = "male", age
 
 def evaluate_progressive_overload(prev_weight: float, prev_reps: int, new_weight: float, new_reps: int) -> dict:
     """Check if a new set represents progressive overload or a personal record."""
-    if new_weight > prev_weight and new_reps >= max(1, prev_reps - 2):
+    if prev_weight > 0 and new_weight > prev_weight and new_reps >= max(1, prev_reps - 2):
         return {
             "is_pr": True,
             "pr_type": "weight",
             "message": f"Weight PR! +{round(new_weight - prev_weight, 1)} kg heavier than baseline."
         }
-    elif new_weight == prev_weight and new_reps > prev_reps:
+    elif prev_reps > 0 and new_weight == prev_weight and new_reps > prev_reps:
         return {
             "is_pr": True,
             "pr_type": "rep",
             "message": f"Rep PR! +{new_reps - prev_reps} reps added at {new_weight} kg."
         }
-    elif new_weight == prev_weight and new_reps == prev_reps:
+    elif prev_weight > 0 and new_weight == prev_weight and new_reps == prev_reps:
         return {
             "is_pr": False,
             "pr_type": "matched",
@@ -79,8 +89,8 @@ def evaluate_progressive_overload(prev_weight: float, prev_reps: int, new_weight
     else:
         return {
             "is_pr": False,
-            "pr_type": "submaximal",
-            "message": "Sub-maximal working load."
+            "pr_type": "solid",
+            "message": "Solid working set logged."
         }
 
 def calculate_daily_health_score(
@@ -96,13 +106,28 @@ def calculate_daily_health_score(
     habit_fasting: bool,
     total_protein: int,
     protein_target: int,
-    yesterday_score: int = 74
+    yesterday_score: int = 70
 ) -> dict:
     """Calculates the overall daily progression score (0-100) answering 'Am I healthier today than yesterday?'"""
+    # If brand new user with no activity today yet
+    if not workout_done and sets_count == 0 and total_protein == 0 and not habit_acv and not habit_seeds and not habit_fasting:
+        readiness_data = calculate_tomorrow_readiness(sleep_hours, stress_level, "None", False)
+        return {
+            "score": 0,
+            "yesterday_score": yesterday_score,
+            "delta": 0,
+            "status": "Ready to Track",
+            "headline": "Ready for Today! 🚀",
+            "narrative": "Log your first workout sets, meals, and sleep to establish your daily progression.",
+            "readiness_pct": readiness_data["readiness_pct"],
+            "recovery_title": readiness_data["title"],
+            "recovery_text": readiness_data["text"]
+        }
+
     score = 0
 
     # 1. Workout & Movement (max 35 pts)
-    if workout_done:
+    if workout_done or sets_count > 0:
         score += 20
         if has_pr:
             score += 10
@@ -147,7 +172,7 @@ def calculate_daily_health_score(
         score += 18
     elif total_protein >= int(protein_target * 0.5):
         score += 12
-    else:
+    elif total_protein > 0:
         score += 6
 
     # Clamp score
@@ -157,18 +182,17 @@ def calculate_daily_health_score(
     if delta > 0:
         status = "Progressing"
         headline = "Healthier Today! 🎉"
-        narrative = f"You are trending ahead of yesterday by +{delta} pts. High training output, solid recovery, and hitting nutrition targets kept you moving forward."
+        narrative = f"You are trending ahead of your baseline by +{delta} pts. High training output, solid recovery, and hitting nutrition targets kept you moving forward."
     elif delta == 0:
         status = "Maintaining"
         headline = "Holding Steady"
-        narrative = "You matched yesterday's baseline. A quick evening stretch or an extra protein snack will tip today into progress."
+        narrative = "You matched your baseline. A quick evening stretch or an extra protein snack will tip today into progress."
     else:
         status = "Needs Recovery"
         headline = "Room to Recover"
-        narrative = f"Today is {abs(delta)} pts under yesterday. Prioritize hitting your fasting window, taking healthy fats, and getting 8+ hours of sleep tonight."
+        narrative = f"Today is {abs(delta)} pts under your baseline. Prioritize hitting your fasting window, taking healthy fats, and getting 8+ hours of sleep tonight."
 
-    # Readiness for tomorrow
-    readiness_data = calculate_tomorrow_readiness(sleep_hours, stress_level, "None", workout_done)
+    readiness_data = calculate_tomorrow_readiness(sleep_hours, stress_level, "None", workout_done or sets_count > 0)
 
     return {
         "score": score,

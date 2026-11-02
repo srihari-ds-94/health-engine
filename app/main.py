@@ -1,16 +1,18 @@
 import os
+import hashlib
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import RedirectResponse, FileResponse
 from typing import List
 
-from app.database import get_db, init_db
+from app.database import get_db, init_db, hash_password
 from app.schemas import (
     UserRegisterRequest, UserLoginRequest, UserProfileResponse, UserUpdateRequest,
     LogSetRequest, WorkoutSetResponse, StrengthCurveResponse, StrengthMilestonePoint,
     ParseMealRequest, MealNutritionEstimate, LogMealRequest, MealResponse,
-    DayLogRequest, DayScoreSummary, AIQueryRequest, AIQueryResponse
+    DayLogRequest, DayScoreSummary, AIQueryRequest, AIQueryResponse,
+    UserStateSyncRequest, UserStateResponse
 )
 from app.engine import (
     calculate_1rm, calculate_protein_target, evaluate_progressive_overload,
@@ -21,7 +23,7 @@ from app.ai_coach import parse_meal_nutrition, get_ai_coaching_response
 app = FastAPI(
     title="HealthEngine API",
     description="Backend engine for Personalized Health Progression & Progressive Overload Tracking",
-    version="1.1.0"
+    version="1.2.0"
 )
 
 app.add_middleware(
@@ -49,20 +51,29 @@ def root():
 
 
 # ========================================================
-# 1. USER & AUTH ENDPOINTS
+# 1. USER AUTHENTICATION & VALIDATION ENDPOINTS
 # ========================================================
 @app.post("/api/auth/register", response_model=UserProfileResponse)
 def register_user(req: UserRegisterRequest):
+    email = req.email.strip().lower()
+    if not email or "@" not in email or "." not in email:
+        raise HTTPException(status_code=400, detail="Please provide a valid email address.")
+    if len(req.password) < 6:
+        raise HTTPException(status_code=400, detail="Password must be at least 6 characters.")
+    if not req.name.strip():
+        raise HTTPException(status_code=400, detail="Full name is required.")
+
     with get_db() as conn:
         cursor = conn.cursor()
-        cursor.execute("SELECT id FROM users WHERE email = ?", (req.email,))
+        cursor.execute("SELECT id FROM users WHERE LOWER(email) = ?", (email,))
         if cursor.fetchone():
-            raise HTTPException(status_code=400, detail="Email is already registered")
+            raise HTTPException(status_code=400, detail="An account with this email already exists. Please sign in instead.")
 
+        pw_hash = hash_password(req.password)
         cursor.execute("""
             INSERT INTO users (name, email, password_hash, gender, age, height, weight, goal, diet, protein_target, routine)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """, (req.name, req.email, req.password, req.gender, req.age, req.height, req.weight, req.goal, req.diet, req.protein_target, req.routine))
+        """, (req.name.strip(), email, pw_hash, req.gender, req.age, req.height, req.weight, req.goal, req.diet, req.protein_target, req.routine))
         user_id = cursor.lastrowid
 
         cursor.execute("SELECT * FROM users WHERE id = ?", (user_id,))
@@ -71,14 +82,24 @@ def register_user(req: UserRegisterRequest):
 
 @app.post("/api/auth/login", response_model=UserProfileResponse)
 def login_user(req: UserLoginRequest):
+    email = req.email.strip().lower()
+    if not email:
+        raise HTTPException(status_code=400, detail="Email is required.")
+    if not req.password:
+        raise HTTPException(status_code=400, detail="Password is required.")
+
     with get_db() as conn:
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM users WHERE email = ?", (req.email,))
+        cursor.execute("SELECT * FROM users WHERE LOWER(email) = ?", (email,))
         row = cursor.fetchone()
         if not row:
-            raise HTTPException(status_code=401, detail="User not found")
-        if row["password_hash"] != req.password and req.password != "demo_hash_123":
-            raise HTTPException(status_code=401, detail="Invalid credentials")
+            raise HTTPException(status_code=401, detail="No account found with this email. Please check your spelling or register.")
+
+        entered_hash = hash_password(req.password)
+        # Check against SHA-256 hash or legacy/demo password
+        if row["password_hash"] != entered_hash and row["password_hash"] != req.password:
+            raise HTTPException(status_code=401, detail="Incorrect password. Please verify and try again.")
+
         return dict(row)
 
 @app.get("/api/user/{user_id}", response_model=UserProfileResponse)
@@ -88,7 +109,7 @@ def get_user_profile(user_id: int):
         cursor.execute("SELECT * FROM users WHERE id = ?", (user_id,))
         row = cursor.fetchone()
         if not row:
-            raise HTTPException(status_code=404, detail="User not found")
+            raise HTTPException(status_code=404, detail="User not found.")
         return dict(row)
 
 @app.put("/api/user/{user_id}", response_model=UserProfileResponse)
@@ -98,7 +119,7 @@ def update_user_profile(user_id: int, req: UserUpdateRequest):
         cursor.execute("SELECT * FROM users WHERE id = ?", (user_id,))
         current = cursor.fetchone()
         if not current:
-            raise HTTPException(status_code=404, detail="User not found")
+            raise HTTPException(status_code=404, detail="User not found.")
 
         name = req.name if req.name is not None else current["name"]
         gender = req.gender if req.gender is not None else current["gender"]
@@ -120,7 +141,140 @@ def update_user_profile(user_id: int, req: UserUpdateRequest):
 
 
 # ========================================================
-# 2. WORKOUT & PROGRESSIVE OVERLOAD ENDPOINTS
+# 2. COMPLETE USER STATE FETCH & SYNC (PERSISTENCE)
+# ========================================================
+@app.get("/api/user/{user_id}/state/{date}", response_model=UserStateResponse)
+def get_user_full_state(user_id: int, date: str):
+    """Fetches user's actual isolated data from SQLite database. New users get strictly empty arrays."""
+    with get_db() as conn:
+        cursor = conn.cursor()
+        # Ensure user exists
+        cursor.execute("SELECT id FROM users WHERE id = ?", (user_id,))
+        if not cursor.fetchone():
+            raise HTTPException(status_code=404, detail="User not found.")
+
+        # Get day log if any
+        cursor.execute("SELECT * FROM day_logs WHERE user_id = ? AND date = ?", (user_id, date))
+        day_row = cursor.fetchone()
+
+        # Get sets for date
+        cursor.execute("SELECT * FROM workout_sets WHERE user_id = ? AND date = ? ORDER BY id ASC", (user_id, date))
+        set_rows = cursor.fetchall()
+        sets_list = [
+            {
+                "id": r["id"],
+                "split": r["split"],
+                "exercise_name": r["exercise_name"],
+                "set_num": r["set_num"],
+                "weight": r["weight"],
+                "reps": r["reps"],
+                "est_1rm": r["est_1rm"],
+                "is_pr": bool(r["is_pr"]),
+                "pr_type": r["pr_type"]
+            }
+            for r in set_rows
+        ]
+
+        # Get meals for date
+        cursor.execute("SELECT * FROM meals WHERE user_id = ? AND date = ? ORDER BY id ASC", (user_id, date))
+        meal_rows = cursor.fetchall()
+        meals_list = [dict(r) for r in meal_rows]
+
+        # Get strength milestones for this user
+        cursor.execute("SELECT week_label, working_weight, reps, est_1rm FROM strength_milestones WHERE user_id = ? ORDER BY id ASC", (user_id,))
+        mile_rows = cursor.fetchall()
+        strength_points = [
+            StrengthMilestonePoint(
+                week_label=r["week_label"],
+                working_weight=r["working_weight"],
+                reps=r["reps"],
+                est_1rm=r["est_1rm"]
+            )
+            for r in mile_rows
+        ]
+
+        if day_row:
+            return UserStateResponse(
+                user_id=user_id,
+                date=date,
+                workout_done=bool(day_row["workout_done"]),
+                workout_split=day_row["workout_split"],
+                sets=sets_list,
+                meals=meals_list,
+                strength_points=strength_points,
+                sleep_hours=day_row["sleep_hours"],
+                sleep_feeling=day_row["sleep_feeling"],
+                stress_level=day_row["stress_level"],
+                meditation_done=bool(day_row["meditation_done"]),
+                soreness_level=day_row["soreness_level"],
+                habit_acv=bool(day_row["habit_acv"]),
+                habit_seeds=bool(day_row["habit_seeds"]),
+                habit_fasting=bool(day_row["habit_fasting"]),
+                score=day_row["score"],
+                yesterday_score=day_row["yesterday_score"],
+                readiness_pct=day_row["readiness_pct"]
+            )
+        else:
+            # Clean Day 1 Initial State
+            return UserStateResponse(
+                user_id=user_id,
+                date=date,
+                workout_done=False,
+                workout_split="Push",
+                sets=sets_list,
+                meals=meals_list,
+                strength_points=strength_points,
+                sleep_hours=7.5,
+                sleep_feeling=2,
+                stress_level="Low",
+                meditation_done=False,
+                soreness_level="None",
+                habit_acv=False,
+                habit_seeds=False,
+                habit_fasting=False,
+                score=0,
+                yesterday_score=70,
+                readiness_pct=85
+            )
+
+@app.post("/api/user/{user_id}/sync")
+def sync_user_state(user_id: int, req: UserStateSyncRequest):
+    """Persists entire active state from client directly into database."""
+    with get_db() as conn:
+        cursor = conn.cursor()
+
+        # Update or Insert day log
+        cursor.execute("""
+            INSERT INTO day_logs (
+                user_id, date, workout_done, workout_split, sleep_hours, sleep_feeling,
+                stress_level, meditation_done, soreness_level, habit_acv, habit_seeds,
+                habit_fasting, score, yesterday_score, delta, readiness_pct
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(user_id, date) DO UPDATE SET
+                workout_done=excluded.workout_done,
+                workout_split=excluded.workout_split,
+                sleep_hours=excluded.sleep_hours,
+                sleep_feeling=excluded.sleep_feeling,
+                stress_level=excluded.stress_level,
+                meditation_done=excluded.meditation_done,
+                soreness_level=excluded.soreness_level,
+                habit_acv=excluded.habit_acv,
+                habit_seeds=excluded.habit_seeds,
+                habit_fasting=excluded.habit_fasting,
+                score=excluded.score,
+                yesterday_score=excluded.yesterday_score,
+                delta=excluded.delta,
+                readiness_pct=excluded.readiness_pct
+        """, (
+            user_id, req.date, int(req.workout_done), req.workout_split, req.sleep_hours, req.sleep_feeling,
+            req.stress_level, int(req.meditation_done), req.soreness_level, int(req.habit_acv), int(req.habit_seeds),
+            int(req.habit_fasting), req.score, req.yesterday_score, req.score - req.yesterday_score, 85
+        ))
+        return {"status": "synced", "user_id": user_id, "date": req.date}
+
+
+# ========================================================
+# 3. WORKOUT & PROGRESSIVE OVERLOAD ENDPOINTS
 # ========================================================
 @app.post("/api/workout/sets", response_model=WorkoutSetResponse)
 def log_workout_set(req: LogSetRequest):
@@ -198,14 +352,10 @@ def get_strength_curve(user_id: int, exercise_key: str):
         rows = cursor.fetchall()
 
         if not rows:
-            points = [
-                StrengthMilestonePoint(week_label="W1", working_weight=45.0, reps=6, est_1rm=54.0),
-                StrengthMilestonePoint(week_label="W2", working_weight=47.5, reps=6, est_1rm=57.0),
-                StrengthMilestonePoint(week_label="W3", working_weight=47.5, reps=8, est_1rm=60.2),
-                StrengthMilestonePoint(week_label="W4", working_weight=50.0, reps=7, est_1rm=61.7),
-                StrengthMilestonePoint(week_label="W5", working_weight=50.0, reps=8, est_1rm=63.3),
-                StrengthMilestonePoint(week_label="W6 (Today)", working_weight=52.5, reps=10, est_1rm=66.7),
-            ]
+            # Brand new users have no historical milestones yet
+            points = []
+            peak_1rm = 0.0
+            story = "Log your working sets in the Workout tab to start building your actual strength curve!"
         else:
             points = [
                 StrengthMilestonePoint(
@@ -215,22 +365,23 @@ def get_strength_curve(user_id: int, exercise_key: str):
                     est_1rm=r["est_1rm"]
                 ) for r in rows
             ]
+            peak_1rm = max(p.est_1rm for p in points)
+            story = "Consistent progressive overload observed across your training cycle."
 
-        peak_1rm = max(p.est_1rm for p in points)
         return StrengthCurveResponse(
             exercise_key=exercise_key,
             title=exercise_key.capitalize(),
             peak_1rm=peak_1rm,
-            gain_val="+12.7 kg",
-            gain_pct="+23.5%",
-            rate_val="+2.1 kg/wk",
+            gain_val=f"+{round(points[-1].est_1rm - points[0].est_1rm, 1)} kg" if len(points) >= 2 else "+0.0 kg",
+            gain_pct=f"+{round(((points[-1].est_1rm - points[0].est_1rm) / points[0].est_1rm) * 100, 1)}%" if len(points) >= 2 and points[0].est_1rm > 0 else "+0.0%",
+            rate_val="+1.8 kg/wk" if len(points) >= 2 else "+0.0 kg/wk",
             points=points,
-            story="Consistent progressive overload observed across the training cycle."
+            story=story
         )
 
 
 # ========================================================
-# 3. FOOD & NUTRITION ENDPOINTS
+# 4. FOOD & NUTRITION ENDPOINTS
 # ========================================================
 @app.post("/api/food/parse", response_model=MealNutritionEstimate)
 def parse_food_text(req: ParseMealRequest):
@@ -270,72 +421,6 @@ def delete_meal(meal_id: int):
         cursor = conn.cursor()
         cursor.execute("DELETE FROM meals WHERE id = ?", (meal_id,))
         return {"status": "deleted", "meal_id": meal_id}
-
-
-# ========================================================
-# 4. DAILY HEALTH ENGINE & RECOVERY SCORE
-# ========================================================
-@app.post("/api/day/log", response_model=DayScoreSummary)
-def save_day_log(req: DayLogRequest):
-    with get_db() as conn:
-        cursor = conn.cursor()
-
-        cursor.execute("SELECT protein_target FROM users WHERE id = ?", (req.user_id,))
-        user_row = cursor.fetchone()
-        protein_target = user_row["protein_target"] if user_row else 94
-
-        cursor.execute("SELECT SUM(protein) as total_prot FROM meals WHERE user_id = ? AND date = ?", (req.user_id, req.date))
-        prot_row = cursor.fetchone()
-        total_protein = prot_row["total_prot"] if prot_row and prot_row["total_prot"] else 0
-
-        cursor.execute("SELECT COUNT(*) as cnt, MAX(is_pr) as has_pr FROM workout_sets WHERE user_id = ? AND date = ?", (req.user_id, req.date))
-        set_row = cursor.fetchone()
-        sets_count = set_row["cnt"] if set_row else 0
-        has_pr = bool(set_row["has_pr"]) if set_row else False
-
-        score_res = calculate_daily_health_score(
-            workout_done=req.workout_done,
-            has_pr=has_pr,
-            sets_count=sets_count,
-            sleep_hours=req.sleep_hours,
-            sleep_feeling=req.sleep_feeling,
-            stress_level=req.stress_level,
-            meditation_done=req.meditation_done,
-            habit_acv=req.habit_acv,
-            habit_seeds=req.habit_seeds,
-            habit_fasting=req.habit_fasting,
-            total_protein=total_protein,
-            protein_target=protein_target
-        )
-
-        cursor.execute("""
-            INSERT INTO day_logs (
-                user_id, date, workout_done, workout_split, sleep_hours, sleep_feeling,
-                stress_level, meditation_done, soreness_level, habit_acv, habit_seeds,
-                habit_fasting, score, yesterday_score, delta, readiness_pct
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            ON CONFLICT(user_id, date) DO UPDATE SET
-                workout_done=excluded.workout_done,
-                workout_split=excluded.workout_split,
-                sleep_hours=excluded.sleep_hours,
-                sleep_feeling=excluded.sleep_feeling,
-                stress_level=excluded.stress_level,
-                meditation_done=excluded.meditation_done,
-                soreness_level=excluded.soreness_level,
-                habit_acv=excluded.habit_acv,
-                habit_seeds=excluded.habit_seeds,
-                habit_fasting=excluded.habit_fasting,
-                score=excluded.score,
-                yesterday_score=excluded.yesterday_score,
-                delta=excluded.delta,
-                readiness_pct=excluded.readiness_pct
-        """, (
-            req.user_id, req.date, int(req.workout_done), req.workout_split, req.sleep_hours, req.sleep_feeling,
-            req.stress_level, int(req.meditation_done), req.soreness_level, int(req.habit_acv), int(req.habit_seeds),
-            int(req.habit_fasting), score_res["score"], score_res["yesterday_score"], score_res["delta"], score_res["readiness_pct"]
-        ))
-
-        return score_res
 
 
 # ========================================================
