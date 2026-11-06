@@ -894,10 +894,34 @@
             </div>
           </div>
           <div class="flex items-center gap-2">
-            <span class="text-[11px] bg-slate-100 text-slate-600 px-2.5 py-1 rounded-lg font-medium border border-slate-200">
-              ⚡ Multi-Intent Engine (LLM Pluggable)
+            <button type="button" id="toggle-gemini-key-ui-btn" class="text-[11px] bg-purple-50 hover:bg-purple-100 text-purple-700 px-2.5 py-1 rounded-lg font-bold border border-purple-200 transition">
+              🔑 Connect Gemini Key
+            </button>
+            <span id="ai-engine-status-pill" class="text-[11px] bg-slate-100 text-slate-600 px-2.5 py-1 rounded-lg font-medium border border-slate-200">
+              ⚡ Smart Engine
             </span>
           </div>
+        </div>
+
+        <!-- Inline Gemini API Key Setup Drawer -->
+        <div id="inline-gemini-key-box" class="p-3 bg-purple-50/70 rounded-xl border border-purple-200 mb-4 hidden">
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+            <div class="flex-1 w-full">
+              <label for="inline-gemini-input" class="block text-[11px] font-bold text-purple-900 mb-1">
+                Paste Google Gemini API Key (Activates Live 1.5 Flash LLM):
+              </label>
+              <input type="password" id="inline-gemini-input" placeholder="AIzaSy... (free key from aistudio.google.com)" class="w-full text-xs p-2 border border-purple-200 rounded-lg focus:outline-none bg-white font-mono">
+            </div>
+            <div class="flex gap-2 mt-2 sm:mt-5 w-full sm:w-auto">
+              <button type="button" id="save-inline-gemini-btn" class="px-3 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-bold transition shadow-sm">
+                Save & Connect
+              </button>
+              <button type="button" id="clear-inline-gemini-btn" class="px-3 py-2 border border-slate-200 bg-white text-slate-600 rounded-lg text-xs font-semibold hover:bg-slate-50 transition">
+                Clear
+              </button>
+            </div>
+          </div>
+          <span id="inline-gemini-status" class="text-[10px] text-emerald-700 font-bold mt-1.5 block hidden"></span>
         </div>
 
         <!-- AI Quick Prompt Buttons -->
@@ -2453,6 +2477,65 @@
     // AI Health Coach Brain with Multi-Intent Architecture
     function setupAIBrain() {
       const askBtn = document.getElementById('ask-ai-btn');
+      const toggleKeyBtn = document.getElementById('toggle-gemini-key-ui-btn');
+      const keyBox = document.getElementById('inline-gemini-key-box');
+      const keyInput = document.getElementById('inline-gemini-input');
+      const saveKeyBtn = document.getElementById('save-inline-gemini-btn');
+      const clearKeyBtn = document.getElementById('clear-inline-gemini-btn');
+      const keyStatus = document.getElementById('inline-gemini-status');
+      const statusPill = document.getElementById('ai-engine-status-pill');
+
+      function refreshKeyUI() {
+        const savedKey = localStorage.getItem('he_gemini_key') || '';
+        if (savedKey) {
+          keyInput.value = savedKey;
+          statusPill.textContent = '🟢 Gemini 1.5 Flash Connected';
+          statusPill.className = 'text-[11px] bg-emerald-100 text-emerald-800 px-2.5 py-1 rounded-lg font-bold border border-emerald-200';
+          toggleKeyBtn.textContent = '⚙️ Key Connected';
+        } else {
+          statusPill.textContent = '⚡ Smart Engine';
+          statusPill.className = 'text-[11px] bg-slate-100 text-slate-600 px-2.5 py-1 rounded-lg font-medium border border-slate-200';
+          toggleKeyBtn.textContent = '🔑 Connect Gemini Key';
+        }
+      }
+
+      if (toggleKeyBtn) {
+        toggleKeyBtn.addEventListener('click', () => {
+          keyBox.classList.toggle('hidden');
+        });
+      }
+
+      if (saveKeyBtn) {
+        saveKeyBtn.addEventListener('click', () => {
+          const val = keyInput.value.trim();
+          if (val) {
+            localStorage.setItem('he_gemini_key', val);
+            keyStatus.textContent = '✓ Gemini API Key saved! Live AI responses activated.';
+            keyStatus.classList.remove('hidden');
+            refreshKeyUI();
+            setTimeout(() => {
+              keyStatus.classList.add('hidden');
+              keyBox.classList.add('hidden');
+            }, 2000);
+          }
+        });
+      }
+
+      if (clearKeyBtn) {
+        clearKeyBtn.addEventListener('click', () => {
+          localStorage.removeItem('he_gemini_key');
+          keyInput.value = '';
+          keyStatus.textContent = 'Key cleared. Switched to offline smart engine.';
+          keyStatus.classList.remove('hidden');
+          refreshKeyUI();
+          setTimeout(() => {
+            keyStatus.classList.add('hidden');
+            keyBox.classList.add('hidden');
+          }, 2000);
+        });
+      }
+
+      refreshKeyUI();
       const queryInput = document.getElementById('ai-user-query');
       const promptButtons = document.querySelectorAll('.ai-prompt-btn');
 
